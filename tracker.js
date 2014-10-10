@@ -7,7 +7,8 @@ var Tracker = Tracker || {
 		    "broken-shield", "flying-flag", "radioactive", "trophy", "broken-skull", "frozen-orb", "rolling-bomb",
 		    "white-tower", "grab", "screaming", "grenade", "sentry-gun", "all-for-one", "angel-outfit", "archery-target"],
 
-    STATUS_ALIASES: {'stun': "sleepy", 'haste': "tread"},
+    STATUS_ALIASES: {'deflection': "bolt-shield", 'disabled': "pummeled", 'haste': "lightning-helix", 'invisible': "ninja-mask",
+		    'potion': "drink-me", 'stun': "sleepy"},
 
     CONFIG_PARAMS: [['announceRounds',		"Announce Each Round"],
 		    ['announceTurns',		"Announce Each Player's Turn"],
