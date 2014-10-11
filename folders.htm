@@ -1,0 +1,190 @@
+<html>
+<body>
+<script language="javascript"><!--
+var items = []; // {name:"",tags:[]}
+var tags = {}; //name: [parent_tag, parent_tag, ...]
+var curPath = [];
+var pathDict = {};
+
+function showTagList(){
+    //show list of all tags
+}
+
+function shouldShowItem(idx){
+/////
+//
+    //return true iff should show item
+    return true;
+//
+/////
+}
+
+function showPathBox(){
+    var pathBox = document.getElementById('pathBox');
+    var pathStr = "";
+    for (var i = 0; i < curPath.length - 1; i++){
+	pathStr += "/<a href=\"#\" onClick=\"popPath(" + (curPath.length - 1 - i) + "); return false;\">" + curPath[i] + "</a>";
+    }
+    if (curPath.length > 0){ pathStr += "/" + curPath[curPath.length - 1]; }
+    else{ pathStr = "/"; }
+    pathBox.innerHTML = "Path: " + pathStr;
+}
+
+function popPath(n){
+    if (curPath.length <= 0){ return; }
+    if (!n){ n = 1; }
+    for (; n > 0; n--){
+	delete pathDict[curPath.pop()];
+    }
+    showPathBox();
+    showItemList();
+}
+
+function pushPath(tag){
+    for (var i = 0; i < curPath.length; i++){
+	if (curPath[i] == tag){ return; }
+    }
+    curPath.push(tag);
+    pathDict[tag] = true;
+    showPathBox();
+    showItemList();
+}
+
+function showItemTags(idx){
+    var t = document.getElementById('selTags');
+    while (t.rows.length > 0){ t.deleteRow(0); }
+    for (var i = 0; i < items[idx].tags.length; i++){
+	var row = t.insertRow(t.rows.length);
+	var cell = row.insertCell(0);
+	cell.innerHTML = items[idx].tags[i];
+	cell = row.insertCell(1);
+	cell.innerHTML = "<input type=\"button\" onClick=\"removeTag(" + idx + ", " + i + ")\" value=\"Remove\">";
+    }
+    var row = t.insertRow(t.rows.length);
+    var cell = row.insertCell(0);
+    cell.innerHTML = "<input id=\"newTagBox\">";
+    cell = row.insertCell(1);
+    cell.innerHTML = "<input type=\"button\" onClick=\"addTag(" + idx + ")\" value=\"Add\">";
+}
+
+function removeTag(itemIdx, tagIdx){
+    //remove items[itemIdx].tags[tagIdx]
+    //update whatever needs to be updated
+}
+
+function addTag(idx){
+    if ((idx < 0) || (idx >= items.length)){ return; }
+    var newTagBox = document.getElementById('newTagBox');
+    for (var i = 0; i < items[idx].tags.length; i++){
+	if (items[idx].tags[i] == newTagBox.value){
+	    newTagBox.value = "";
+	    return;
+	}
+    }
+    items[idx].tags.push(newTagBox.value);
+    if (!tags[newTagBox.value]){
+	tags[newTagBox.value] = [];
+	showTagList();
+    }
+    newTagBox.value = "";
+    items[idx].tags.sort();
+    showItemTags(idx);
+    showItemList();
+}
+
+//function to delete item
+
+function showItem(idx){
+    if ((idx < 0) || (idx >= items.length)){ return; }
+    document.getElementById('selIndex').innerHTML = "" + idx;
+    document.getElementById('selName').innerHTML = items[idx].name;
+    showItemTags(idx);
+    //interface to delete item
+}
+
+function showItemList(){
+    var t = document.getElementById('itemTable');
+    while (t.rows.length > 0){ t.deleteRow(0); }
+
+    var itemsToShow = [];
+    var tagsDict = {};
+    for (var i = 0; i < items.length; i++){
+	if (!shouldShowItem(i)){ continue; }
+	itemsToShow.push(i);
+	for (var j = 0; j < items[i].tags.length; j++){
+	    if ((tagsDict[items[i].tags[j]]) || (pathDict[items[i].tags[j]])){ continue; }
+	    tagsDict[items[i].tags[j]] = true;
+	}
+    }
+    var tagsToShow = [];
+    for (var tag in tagsDict){ tagsToShow.push(tag); }
+    tagsToShow.sort();
+
+    if (curPath.length > 0){
+	var row = t.insertRow(t.rows.length);
+	var cell = row.insertCell(0);
+	cell.innerHTML = "&nbsp;"
+	cell = row.insertCell(1);
+	cell.innerHTML = "<a href=\"#\" onClick=\"popPath(); return false;\">..</a>";
+    }
+
+    for (var i = 0; i < tagsToShow.length; i++){
+	var row = t.insertRow(t.rows.length);
+	var cell = row.insertCell(0);
+	cell.innerHTML = "Tag"
+	cell = row.insertCell(1);
+	cell.innerHTML = "<a href=\"#\" onClick=\"pushPath('" + tagsToShow[i] + "'); return false;\">" + tagsToShow[i] + "</a>";
+    }
+
+    for (var i = 0; i < itemsToShow.length; i++){
+	var row = t.insertRow(t.rows.length);
+	var cell = row.insertCell(0);
+	cell.innerHTML = "Item"
+	cell = row.insertCell(1);
+	cell.innerHTML = "<a href=\"#\" onClick=\"showItem('" + itemsToShow[i] + "'); return false;\">" + items[itemsToShow[i]].name + "</a>";
+    }
+}
+
+function addNewItem(){
+    var itemNameBox = document.getElementById('newItemName')
+    items.push({'name': itemNameBox.value, tags: []});
+    itemNameBox.value = "";
+    items.sort(function(x, y){
+		    if (x.name < y.name){ return -1; }
+		    if (x.name > y.name){ return 1; }
+		    return 0;
+		});
+    if (curPath.length <= 0){
+	showItemList();
+    }
+}
+//--></script>
+</body>
+<table border="1" cols="3">
+ <tr>
+  <th>My Tags</th>
+  <th>My Items</th>
+  <th>Selected Item</th>
+ </tr>
+ <tr>
+  <td valign="top">
+   <!--tag list-->&nbsp;
+  </td>
+  <td valign="top">
+   <div id="pathBox">Path: /</div>
+   <table id="itemTable" border="0" cols="2"></table><br>
+   <!--checkbox to show all descendant items-->
+   Above would support drag-and-drop if I weren't lazy
+  </td>
+  <td valign="top">
+   <table border="0" cols="2">
+    <tr><td>Index:</td><td id="selIndex">&nbsp;</td></tr>
+    <tr><td>Name:</td><td id="selName">&nbsp;</td></tr>
+    <tr><td valign="top">Tags:</td><td><table id="selTags" border="0" cols="2"></table></td></tr>
+   </table>
+   <!--interface to delete item-->
+  </td>
+ </tr>
+</table>
+Add New Item: <input id="newItemName"> <input type="button" onClick="addNewItem()" value="Add">
+</html>
