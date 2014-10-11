@@ -5,18 +5,22 @@ var items = []; // {name:"",tags:[]}
 var tags = {}; //name: [parent_tag, parent_tag, ...]
 var curPath = [];
 var pathDict = {};
+var showAll = true;
 
 function showTagList(){
     //show list of all tags
+    //show interface to place tag inside another (tags[this_tag].push(other_tag) if not already there)
 }
 
 function shouldShowItem(idx){
-/////
-//
-    //return true iff should show item
+    var tagDict = {};
+    for (var i = 0; i < items[idx].tags.length; i++){
+	tagDict[items[idx].tags[i]] = true;
+    }
+    for (var i = 0; i < curPath.length; i++){
+	if (!tagDict[curPath[i]]){ return false; }
+    }
     return true;
-//
-/////
 }
 
 function showPathBox(){
@@ -68,8 +72,40 @@ function showItemTags(idx){
 }
 
 function removeTag(itemIdx, tagIdx){
-    //remove items[itemIdx].tags[tagIdx]
-    //update whatever needs to be updated
+    if ((itemIdx < 0) || (itemIdx >= items.length) || (tagIdx < 0) || (tagIdx >= items[itemIdx].tags.length)){ return; }
+    var tagToRemove = items[itemIdx].tags[tagIdx];
+    items[itemIdx].tags.splice(tagIdx, 1);
+    var tagExists = false;
+    for (var i = 0; i < items.length; i++){
+	for (var j = 0; j < items[i].tags.length; j++){
+	    if (items[i].tags[j] == tagToRemove){
+		tagExists = true;
+		break;
+	    }
+	}
+	if (tagExists){ break; }
+    }
+    if (!tagExists){
+	delete tags[tagToRemove];
+	for (var t in tags){
+	    for (var i = 0; i < tags[t].length; i++){
+		if (tags[t][i] == tagToRemove){
+		    tags[t].splice(i, 1);
+		    break;
+		}
+	    }
+	}
+	showTagList();
+	var tagPathIdx = curPath.indexOf(tagToRemove);
+	if (tagPathIdx >= 0){
+	    curPath = curPath.slice(0, tagPathIdx);
+	    pathDict = {};
+	    for (var i = 0; i < curPath.length; i++){ pathDict[curPath[i]] = true; }
+	    showPathBox();
+	}
+    }
+    showItemTags(itemIdx);
+    showItemList();
 }
 
 function addTag(idx){
@@ -129,6 +165,18 @@ function showItemList(){
     }
 
     for (var i = 0; i < tagsToShow.length; i++){
+	if ((!showAll) && (tags[tagsToShow[i]].length > 0)){
+	    var showIt = false;
+	    if (curPath.length > 0){
+		for (var j = 0; j < tags[tagsToShow[i]].length; j++){
+		    if (tags[tagsToShow[i]] == curPath[curPath.length - 1]){
+			showIt = true;
+			break;
+		    }
+		}
+	    }
+	    if (!showIt){ continue; }
+	}
 	var row = t.insertRow(t.rows.length);
 	var cell = row.insertCell(0);
 	cell.innerHTML = "Tag"
@@ -137,12 +185,29 @@ function showItemList(){
     }
 
     for (var i = 0; i < itemsToShow.length; i++){
+	if (!showAll){
+	    var showIt = true;
+	    for (var j = 0; j < items[itemsToShow[i]].tags.length; j++){
+		if (!pathDict[items[itemsToShow[i]].tags[j]]){
+		    showIt = false;
+		    break;
+		}
+	    }
+	    if (!showIt){ continue; }
+	}
 	var row = t.insertRow(t.rows.length);
 	var cell = row.insertCell(0);
 	cell.innerHTML = "Item"
 	cell = row.insertCell(1);
 	cell.innerHTML = "<a href=\"#\" onClick=\"showItem('" + itemsToShow[i] + "'); return false;\">" + items[itemsToShow[i]].name + "</a>";
     }
+}
+
+function toggleShowAll(){
+    showAll = !showAll;
+    var showAllBut = document.getElementById('showAllBut');
+    showAllBut.value = (showAll ? "Only Show Direct Children" : "Show All Descendants");
+    showItemList();
 }
 
 function addNewItem(){
@@ -173,8 +238,8 @@ function addNewItem(){
   <td valign="top">
    <div id="pathBox">Path: /</div>
    <table id="itemTable" border="0" cols="2"></table><br>
-   <!--checkbox to show all descendant items-->
-   Above would support drag-and-drop if I weren't lazy
+   <input id="showAllBut" type="button" onClick="toggleShowAll()" value="Only Show Direct Children"><br>
+   Above would support drag-and-drop (of both items and tags) if I weren't lazy
   </td>
   <td valign="top">
    <table border="0" cols="2">
