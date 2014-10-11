@@ -7,9 +7,59 @@ var curPath = [];
 var pathDict = {};
 var showAll = true;
 
+function removeTagParent(tag, parent){
+    if (!tags[tag]){ return; }
+    var removed = false;
+    for (var i = 0; i < tags[tag].length; i++){
+	if (tags[tag][i] == parent){
+	    tags[tag].splice(i, 1);
+	    removed = true;
+	    break;
+	}
+    }
+    if (!removed){ return; }
+    showTagList();
+    showItemList();
+}
+
+function addTagParent(tag){
+    if (!tags[tag]){ return; }
+    var parentBox = document.getElementById('newParentBox_' + tag);
+    for (var i = 0; i < tags[tag].length; i++){
+	if (tags[tag][i] == parentBox.value){ return; }
+    }
+    tags[tag].push(parentBox.value);
+    tags[tag].sort();
+    parentBox.value = "";
+    showTagList();
+    //alter curPath/pathDict if necessary
+    showItemList();
+}
+
 function showTagList(){
-    //show list of all tags
-    //show interface to place tag inside another (tags[this_tag].push(other_tag) if not already there)
+    var t = document.getElementById('tagTable');
+    while (t.rows.length > 1){ t.deleteRow(1); }
+
+    var tagNames = [];
+    for (var tag in tags){ tagNames.push(tag); }
+    tagNames.sort();
+
+    for (var i = 0; i < tagNames.length; i++){
+	var row = t.insertRow(t.rows.length);
+	var cell = row.insertCell(0);
+	cell.style.verticalAlign = "top";
+	cell.innerHTML = tagNames[i];
+	cell = row.insertCell(1);
+	var newHtml = "";
+	for (var j = 0; j < tags[tagNames[i]].length; j++){
+	    newHtml += tags[tagNames[i]][j];
+	    newHtml += " <input type=\"button\" onClick=\"removeTagParent('" + tagNames[i];
+	    newHtml += "', '" + tags[tagNames[i]][j] + "')\" value=\"Remove\"><br>";
+	}
+	newHtml += "<input id=\"newParentBox_" + tagNames[i] + "\"> ";
+	newHtml += "<input type=\"button\" onClick=\"addTagParent('" + tagNames[i] + "')\" value=\"Add Parent\">";
+	cell.innerHTML = newHtml;
+    }
 }
 
 function shouldShowItem(idx){
@@ -233,7 +283,9 @@ function addNewItem(){
  </tr>
  <tr>
   <td valign="top">
-   <!--tag list-->&nbsp;
+   <table id="tagTable" border="0" cols="2">
+    <tr><th>Tag</th><th>Child Of</th></tr>
+   </table>
   </td>
   <td valign="top">
    <div id="pathBox">Path: /</div>
