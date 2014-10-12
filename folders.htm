@@ -51,13 +51,26 @@ function showTagList(){
 	cell.innerHTML = tagNames[i];
 	cell = row.insertCell(1);
 	var newHtml = "";
+	var tagParents = {};
 	for (var j = 0; j < tags[tagNames[i]].length; j++){
+	    tagParents[tags[tagNames[i]][j]] = true;
 	    newHtml += tags[tagNames[i]][j];
 	    newHtml += " <input type=\"button\" onClick=\"removeTagParent('" + tagNames[i];
 	    newHtml += "', '" + tags[tagNames[i]][j] + "')\" value=\"Remove\"><br>";
 	}
-	newHtml += "<input id=\"newParentBox_" + tagNames[i] + "\"> ";
-	newHtml += "<input type=\"button\" onClick=\"addTagParent('" + tagNames[i] + "')\" value=\"Add Parent\">";
+	var potentialParents = [];
+	for (var j = 0; j < tagNames.length; j++){
+	    if ((!tagParents[tagNames[j]]) && (tagNames[j] != tagNames[i])){ potentialParents.push(tagNames[j]); }
+	}
+	if (potentialParents.length > 0){
+	    newHtml += "<select id=\"newParentBox_" + tagNames[i] + "\">";
+	    for (var j = 0; j < potentialParents.length; j++){
+		newHtml += "<option value=\"" + potentialParents[j] + "\">" + potentialParents[j] + "</option>";
+	    }
+	    newHtml += "</select>";
+	    newHtml += "<input type=\"button\" onClick=\"addTagParent('" + tagNames[i] + "')\" value=\"Add Parent\">";
+	}
+	if (!newHtml){ newHtml = "&nbsp;"; }
 	cell.innerHTML = newHtml;
     }
 }
@@ -219,7 +232,7 @@ function showItemList(){
 	    var showIt = false;
 	    if (curPath.length > 0){
 		for (var j = 0; j < tags[tagsToShow[i]].length; j++){
-		    if (tags[tagsToShow[i]] == curPath[curPath.length - 1]){
+		    if (tags[tagsToShow[i]][j] == curPath[curPath.length - 1]){
 			showIt = true;
 			break;
 		    }
@@ -283,15 +296,14 @@ function addNewItem(){
  </tr>
  <tr>
   <td valign="top">
-   <table id="tagTable" border="0" cols="2">
+   <table id="tagTable" border="1" cols="2">
     <tr><th>Tag</th><th>Child Of</th></tr>
-   </table>
+   </table><br>
   </td>
   <td valign="top">
    <div id="pathBox">Path: /</div>
    <table id="itemTable" border="0" cols="2"></table><br>
    <input id="showAllBut" type="button" onClick="toggleShowAll()" value="Only Show Direct Children"><br>
-   Above would support drag-and-drop (of both items and tags) if I weren't lazy
   </td>
   <td valign="top">
    <table border="0" cols="2">
@@ -303,5 +315,15 @@ function addNewItem(){
   </td>
  </tr>
 </table>
-Add New Item: <input id="newItemName"> <input type="button" onClick="addNewItem()" value="Add">
+Add New Item: <input id="newItemName"> <input type="button" onClick="addNewItem()" value="Add"><br><br>
+Notes (or "How the stuff above above would work if I weren't lazy"):
+<ul>
+ <li>"My Tags" should be a hierarchical view with support for drag-and-drop</li>
+ <li>"My Items" should support drag-and-drop (of both items and tags)</li>
+ <li>Moving an item into a tag would automatically tag it with that tag and every tag in the path</li>
+ <li>
+  Moving a tag into a tag would automatically tag all its descendants with that tag and every tag in the path<br>
+  (corollary: because that doesn't happen in this demo, some items can become inaccessible when only showing direct children)
+ </li>
+</ul>
 </html>
