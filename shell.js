@@ -94,8 +94,9 @@ var Shell = Shell || {
 		if (idx < 0){
 		    return "Error: Unmatched " + quote;
 		}
-		curTok += s.substr(0, idx - 1);
+		curTok += s.substr(0, idx);
 		s = s.substr(idx + 1);
+		quote = "";
 		continue;
 	    }
 	    var idx = s.search(/[\s'"]/);
