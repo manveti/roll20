@@ -182,7 +182,7 @@ var Shell = Shell || {
 /////
 
 	// execute command callback
-	Shell.commands[tokens[0]].callback(tokens, msg);
+	Shell.commands[tokens[0]].callback(tokens, _.clone(msg));
     },
 
     init: function(){
