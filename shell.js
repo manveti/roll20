@@ -1,6 +1,8 @@
 var Shell = Shell || {
     commands: {},
 
+    // I/O functions
+
     write: function(s, to){
 /////
 //
@@ -8,17 +10,22 @@ var Shell = Shell || {
 	if ((to) && (s) && (s.charAt(0) != '/')){
 	    s = "/w " + to.split(" ", 1)[0] + " " + s;
 	}
-	sendChat("", s);
+	sendChat("Shell", s);
 //
 /////
     },
+
     writeAndLog: function(s, to){
 	Shell.write(s, to);
 	log(s);
     },
+
     writeErr: function(s){
 	Shell.writeAndLog(s, "gm");
     },
+
+
+    // command registration
 
     registerCommand: function(cmd, sig, desc, fn){
 	// error checking
@@ -45,11 +52,9 @@ var Shell = Shell || {
 
 	// check for already-registered command of the same name
 	if (Shell.commands[cmd]){
-/////
-//
-	    //if args aren't the same: Shell.writeErr("Error: Command with name \"" + cmd + "\" already registered");
-//
-/////
+	    if ((Shell.commands[cmd].signature != sig) || (Shell.commands[cmd].description != desc) || (Shell.commands[cmd].callback != fn)){
+		Shell.writeErr("Error: Command with name \"" + cmd + "\" already registered");
+	    }
 	    return;
 	}
 
@@ -82,6 +87,9 @@ var Shell = Shell || {
 	// unregister command
 	delete Shell.commands[cmd];
     },
+
+
+    // utility functions
 
     tokenize: function(s){
 	var retval = [];
@@ -126,6 +134,31 @@ var Shell = Shell || {
 	return retval;
     },
 
+
+    // built-in commands
+
+    helpCommand: function(args, msg){
+	var commandKeys = [];
+	for (var cmd in Shell.commands){
+/////
+//
+	    //if msg.playerid has permission to execute cmd:
+	    commandKeys.push(cmd);
+//
+/////
+	}
+	commandKeys.sort();
+	for (var i = 0; i < commandKeys.length; i++){
+	    Shell.write(Shell.commands[commandKeys[i]].signature, msg.who);
+	    if (Shell.commands[commandKeys[i]].description){
+		Shell.write("\t" + Shell.commands[commandKeys[i]].description, msg.who);
+	    }
+	}
+    },
+
+
+    // internal functions
+
     handleChatMessage: function(msg){
 	if (msg.type != "api"){ return; }
 
@@ -156,9 +189,18 @@ var Shell = Shell || {
 /////
 //
 	//initialize state.Shell (for storing command permissions)
-	//register built-in commands ("!help", permission-related commands)
 //
 /////
+
+	// register built-in commands
+	Shell.registerCommand("!help", "!help", "Show this help message", Shell.helpCommand);
+/////
+//
+	//other built-in commands (e.g. permission-related commands)
+//
+/////
+
+	// register chat event handler
 	on("chat:message", Shell.handleChatMessage);
     }
 };
