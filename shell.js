@@ -10,7 +10,7 @@ var Shell = Shell || {
 	if ((to) && (s) && (s.charAt(0) != '/')){
 	    s = "/w " + to.split(" ", 1)[0] + " " + s;
 	}
-	sendChat("Shell", s);
+	sendChat("Shell", s.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\t/g, "&emsp;"));
 //
 /////
     },
@@ -86,6 +86,9 @@ var Shell = Shell || {
 
 	// unregister command
 	delete Shell.commands[cmd];
+	if (state.Shell.userPermissions[cmd]){
+	    delete state.Shell.userPermissions[cmd];
+	}
     },
 
 
@@ -140,12 +143,9 @@ var Shell = Shell || {
     helpCommand: function(args, msg){
 	var commandKeys = [];
 	for (var cmd in Shell.commands){
-/////
-//
-	    //if msg.playerid has permission to execute cmd:
-	    commandKeys.push(cmd);
-//
-/////
+	    if (Shell.hasPermission(msg, cmd)){
+		commandKeys.push(cmd);
+	    }
 	}
 	commandKeys.sort();
 	for (var i = 0; i < commandKeys.length; i++){
@@ -156,8 +156,109 @@ var Shell = Shell || {
 	}
     },
 
+    permissionCommand: function(args, msg){
+	function showHelp(){
+	    Shell.write(args[0] + " add <command> [player]", msg.who);
+	    Shell.write("\tAdd permission for specified player to execute specified command.", msg.who);
+	    Shell.write("\tIf no player is specified, adds world-execute permission.", msg.who);
+	    Shell.write(args[0] + " remove <command> [player]", msg.who);
+	    Shell.write("\tRemove permission for specified player to execute specified command.", msg.who);
+	    Shell.write("\tIf no player is specified, removes world-execute permission.", msg.who);
+	}
+
+	if ((args.length > 1) && ((args[1] == "-h") || (args[1] == "--help") || (args[1] == "help"))){
+	    showHelp();
+	    return;
+	}
+	if (args.length < 3){
+	    Shell.write(args[0] + " requires at least two arguments: add|remove and a command", msg.who);
+	    showHelp();
+	    return;
+	}
+	if (!args[2]){
+	    Shell.write("Unrecognized command: \"\"", msg.who);
+	    showHelp();
+	    return;
+	}
+	var cmd = args[2];
+	if (cmd.charAt(0) != '!'){
+	    cmd = "!" + cmd;
+	}
+	if (!Shell.commands[cmd]){
+	    Shell.write("Unrecognized command: " + cmd, msg.who);
+	    return;
+	}
+
+	var playerId = (args.length > 3 ? args[3] : "");
+	if (playerId){
+	    var players = _.union(findObjs({_type: "player", _displayname: playerId}), findObjs({_type: "player", _d20userid: playerId}));
+	    if (players.length < 1){
+		Shell.write("Unable to find user matching " + playerId, msg.who);
+		players = findObjs({_type: "player"});
+	    }
+	    if (players.length > 1){
+		Shell.write("Found more than one user matching " + playerId, msg.who);
+	    }
+	    if (players.length != 1){
+		Shell.write("Please try again using one of: " + (_.map(players, function(p){ return p.get('_d20userid'); })).join(", "), msg.who);
+		return;
+	    }
+	    playerId = players[0].id;
+	}
+
+	switch (args[1]){
+	case "add":
+	    // add userId to state.Shell.userPermissions[cmd] (if not already present), making sure to keep the list sorted
+	    if (!state.Shell.userPermissions[cmd]){
+		state.Shell.userPermissions[cmd] = [];
+	    }
+	    if (_.contains(state.Shell.userPermissions[cmd], playerId)){ return; }
+	    state.Shell.userPermissions[cmd].splice(_.sortedIndex(state.Shell.userPermissions[cmd], playerId), 0, playerId);
+	    break;
+	case "remove":
+	    // remove playerId from state.Shell.userPermissions[cmd] (if present)
+	    if (!state.Shell.userPermissions[cmd]){ return; }
+	    var idx = state.Shell.userPermissions[cmd].indexOf(playerId);
+	    if (idx < 0){ return; }
+	    state.Shell.userPermissions[cmd].splice(idx, 1);
+	    break;
+	default:
+	    Shell.write("Unrecognized operation: " + args[1], msg.who);
+	    showHelp();
+	    return;
+	}
+    },
+
 
     // internal functions
+
+    isFromGM: function(msg){
+	// try to determine if message sender is GM from msg
+	var player = getObj("player", msg.playerid);
+	if ((player.get('speakingas') == "") || (player.get('speakingas') == "player|" + msg.playerid)){
+	    return msg.who != player.get('_displayname');
+	}
+
+	// couldn't figure it out from msg; try to use isGM if it exists
+	// we'd try this first if there were a way to tell the difference between "player not GM" and "player GM status unknown"
+	if ((typeof(isGM) != "undefined") && (isGM) && (_.isFunction(isGM))){
+	    return isGM(msg.playerid);
+	}
+    },
+
+    hasPermission: function(msg, cmd){
+	if (Shell.isFromGM(msg)){ return true; }
+	if (state.Shell.userPermissions[cmd]){
+	    if (_.contains(state.Shell.userPermissions[cmd], msg.playerid, true)){ return true; }
+	    if (_.contains(state.Shell.userPermissions[cmd], "", true)){ return true; }
+	}
+/////
+//
+	//maybe add handling for groups
+//
+/////
+	return false;
+    },
 
     handleChatMessage: function(msg){
 	if (msg.type != "api"){ return; }
@@ -175,30 +276,25 @@ var Shell = Shell || {
 	    return;
 	}
 
-/////
-//
-	//verify msg.playerid has permission to execute tokens[0]
-//
-/////
+	if (!Shell.hasPermission(msg, tokens[0])){
+	    Shell.write("Error: You do not have permission to execute command " + tokens[0]);
+	    return;
+	}
 
 	// execute command callback
 	Shell.commands[tokens[0]].callback(tokens, _.clone(msg));
     },
 
     init: function(){
-/////
-//
-	//initialize state.Shell (for storing command permissions)
-//
-/////
+	// initialize stored state
+	state.Shell = state.Shell || {};
+	state.Shell.userPermissions = state.Shell.userPermissions || {};
 
 	// register built-in commands
 	Shell.registerCommand("!help", "!help", "Show this help message", Shell.helpCommand);
-/////
-//
-	//other built-in commands (e.g. permission-related commands)
-//
-/////
+	state.Shell.userPermissions["!help"] = [""];
+	Shell.registerCommand("!shell-permission", "!shell-permission add|remove <command> [player]",
+			    "Add or remove permission for specified command", Shell.permissionCommand);
 
 	// register chat event handler
 	on("chat:message", Shell.handleChatMessage);
