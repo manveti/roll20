@@ -6,7 +6,7 @@ var Shell = Shell || {
     rawWrite: function(s, to, style){
 	s = s.replace(/\n/g, "<br>");
 	s = "<div style=\"white-space: pre-wrap; padding: 0px; margin: 0px" + (style ? "; " + style : "") + "\">" + s + "</div>";
-	if ((to) && (s) && (s.charAt(0) != '/')){
+	if (to){
 	    s = "/w " + to.split(" ", 1)[0] + " " + s;
 	}
 	sendChat("Shell", s);
