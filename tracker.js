@@ -30,7 +30,7 @@ var Tracker = Tracker || {
 	if (who){
 	    who = "/w " + who.split(" ", 1)[0] + " ";
 	}
-	sendChat(from, who + s.replace(/\n/g, "<br>"));
+	sendChat(from, who + s.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>"));
     },
 
     reset: function(){
@@ -183,7 +183,7 @@ var Tracker = Tracker || {
 	helpMsg += "enable PARAM:       set the specified config parameter to true\n";
 	helpMsg += "disable PARAM:      set the specified config parameter to false\n";
 	helpMsg += "toggle PARAM:       toggle the specified config parameter between true and false";
-	Tracker.write(helpMsg, who, "font-size: x-small; font-family: monospace", "Tracker");
+	Tracker.write(helpMsg, who, "font-size: small; font-family: monospace", "Tracker");
     },
 
     handleTrackerMessage: function(tokens, msg){
@@ -262,7 +262,7 @@ var Tracker = Tracker || {
 	helpMsg += "remove [ID]:        remove specified status effect, or all status effects from selected tokens\n";
 	helpMsg += "rem, delete, del:   synonyms for remove\n";
 	helpMsg += "icons:              list available status icons and aliases";
-	Tracker.write(helpMsg, who, "font-size: x-small; font-family: monospace", "Tracker");
+	Tracker.write(helpMsg, who, "font-size: small; font-family: monospace", "Tracker");
     },
 
     handleStatusMessage: function(tokens, msg){
