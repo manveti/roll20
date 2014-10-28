@@ -3,17 +3,17 @@ var Shell = Shell || {
 
     // I/O functions
 
-    rawWrite: function(s, to, style){
+    rawWrite: function(s, to, style, from){
 	s = s.replace(/\n/g, "<br>");
 	s = "<div style=\"white-space: pre-wrap; padding: 0px; margin: 0px" + (style ? "; " + style : "") + "\">" + s + "</div>";
 	if (to){
 	    s = "/w " + to.split(" ", 1)[0] + " " + s;
 	}
-	sendChat("Shell", s);
+	sendChat((typeof(from) == typeof("") ? from : "Shell"), s);
     },
 
-    write: function(s, to, style){
-	Shell.rawWrite(s.replace(/</g, "&lt;").replace(/>/g, "&gt;"), to, style);
+    write: function(s, to, style, from){
+	Shell.rawWrite(s.replace(/</g, "&lt;").replace(/>/g, "&gt;"), to, style, from);
     },
 
     writeAndLog: function(s, to){
