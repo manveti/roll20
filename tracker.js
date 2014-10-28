@@ -177,7 +177,8 @@ var Tracker = Tracker || {
 
     showTrackerHelp: function(who, cmd){
 	Tracker.write(cmd + " commands:", who, "", "Tracker");
-	helpMsg  = "help:               display this help message\n";
+	var helpMsg = "";
+	helpMsg += "help:               display this help message\n";
 	helpMsg += "get [PARAM]:        display the value of the specified config parameter, or all config parameters\n";
 	helpMsg += "set PARAM [VALUE]:  set the specified config parameter to the specified value (defaults to true)\n";
 	helpMsg += "enable PARAM:       set the specified config parameter to true\n";
@@ -255,7 +256,8 @@ var Tracker = Tracker || {
 
     showStatusHelp: function(who, cmd){
 	Tracker.write(cmd + " commands:", who, "", "Tracker");
-	helpMsg  = "help:               display this help message\n";
+	var helpMsg = "";
+	helpMsg += "help:               display this help message\n";
 	helpMsg += "add DUR ICON DESC:  add DUR rounds of status effect with specified icon and description to selected tokens\n";
 	helpMsg += "list:               list all status effects for selected tokens\n";
 	helpMsg += "show:               synonym for list\n";
