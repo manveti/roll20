@@ -26,6 +26,13 @@ var Tracker = Tracker || {
 	};
     },
 
+    write: function(s, who, style, from){
+	if (who){
+	    who = "/w " + who.split(" ", 1)[0] + " ";
+	}
+	sendChat(from, who + s.replace(/\n/g, "<br>"));
+    },
+
     reset: function(){
 	state.InitiativeTracker.round = null;
 	state.InitiativeTracker.count = null;
@@ -135,7 +142,7 @@ var Tracker = Tracker || {
 	if (param == null){
 	    for (var i = 0; i < Tracker.CONFIG_PARAMS.length; i++){
 		var head = Tracker.CONFIG_PARAMS[i][1] + " (" + Tracker.CONFIG_PARAMS[i][0] + "): ";
-		sendChat("Tracker", who + head + state.InitiativeTracker[Tracker.CONFIG_PARAMS[i][0]]);
+		Tracker.write(head + state.InitiativeTracker[Tracker.CONFIG_PARAMS[i][0]], who, "", "Tracker");
 	    }
 	}
 	else {
@@ -143,13 +150,13 @@ var Tracker = Tracker || {
 	    for (var i = 0; i < CONFIG_PARAMS.length; i++){
 		if (Tracker.CONFIG_PARAMS[i][0] == param){
 		    var head = Tracker.CONFIG_PARAMS[i][1] + " (" + Tracker.CONFIG_PARAMS[i][0] + "): ";
-		    sendChat("Tracker", who + head + state.InitiativeTracker[Tracker.CONFIG_PARAMS[i][0]]);
+		    Tracker.write(head + state.InitiativeTracker[Tracker.CONFIG_PARAMS[i][0]], who, "", "Tracker");
 		    err = false;
 		    break;
 		}
 	    }
 	    if (err){
-		sendChat("Tracker", who + "Error: Config parameter '" + param + "' not found");
+		Tracker.write("Error: Config parameter '" + param + "' not found", who, "", "Tracker");
 	    }
 	}
     },
@@ -164,23 +171,24 @@ var Tracker = Tracker || {
 	    }
 	}
 	if (err){
-	    sendChat("Tracker", who + "Error: Config parameter '" + param + "' not found");
+	    Tracker.write("Error: Config parameter '" + param + "' not found", who, "", "Tracker");
 	}
     },
 
     showTrackerHelp: function(who, cmd){
-	sendChat("Tracker", who + cmd + " commands:");
-	sendChat("Tracker", who + "help:               display this help message");
-	sendChat("Tracker", who + "get [PARAM]:        display the value of the specified config parameter, or all config parameters");
-	sendChat("Tracker", who + "set PARAM [VALUE]:  set the specified config parameter to the specified value (defaults to true)");
-	sendChat("Tracker", who + "enable PARAM:       set the specified config parameter to true");
-	sendChat("Tracker", who + "disable PARAM:      set the specified config parameter to false");
-	sendChat("Tracker", who + "toggle PARAM:       toggle the specified config parameter between true and false");
+	Tracker.write(cmd + " commands:", who, "", "Tracker");
+	helpMsg  = "help:               display this help message\n";
+	helpMsg += "get [PARAM]:        display the value of the specified config parameter, or all config parameters\n";
+	helpMsg += "set PARAM [VALUE]:  set the specified config parameter to the specified value (defaults to true)\n";
+	helpMsg += "enable PARAM:       set the specified config parameter to true\n";
+	helpMsg += "disable PARAM:      set the specified config parameter to false\n";
+	helpMsg += "toggle PARAM:       toggle the specified config parameter between true and false";
+	Tracker.write(helpMsg, who, "font-size: x-small; font-family: monospace", "Tracker");
     },
 
-    handleTrackerMessage: function(who, msg){
-	var tokens = msg.split(" ");
-	who = "/w " + who.replace(" (GM)", "") + " ";
+    handleTrackerMessage: function(tokens, msg){
+	var who = msg.who;
+	msg = msg.content;
 	if ((tokens.length > 1) && (tokens[1] == "public")){
 	    who = "";
 	    tokens.splice(1, 1);
@@ -193,7 +201,7 @@ var Tracker = Tracker || {
 	    break;
 	case "set":
 	    if (tokens.length <= 2){
-		sendChat("Tracker", who + "Error: The 'set' command requires at least one argument (the parameter to set)");
+		Tracker.write("Error: The 'set' command requires at least one argument (the parameter to set)", who, "", "Tracker");
 		break;
 	    }
 	    var value = true;
@@ -204,21 +212,21 @@ var Tracker = Tracker || {
 	    break;
 	case "enable":
 	    if (tokens.length != 3){
-		sendChat("Tracker", who + "Error: The 'enable' command requires exactly one argument (the parameter to enable)");
+		Tracker.write("Error: The 'enable' command requires exactly one argument (the parameter to enable)", who, "", "Tracker");
 		break;
 	    }
 	    Tracker.setConfigParam(who, tokens[2], true);
 	    break;
 	case "disable":
 	    if (tokens.length != 3){
-		sendChat("Tracker", who + "Error: The 'disable' command requires exactly one argument (the parameter to disble)");
+		Tracker.write("Error: The 'disable' command requires exactly one argument (the parameter to disble)", who, "", "Tracker");
 		break;
 	    }
 	    Tracker.setConfigParam(who, tokens[2], false);
 	    break;
 	case "toggle":
 	    if (tokens.length != 3){
-		sendChat("Tracker", who + "Error: The 'toggle' command requires exactly one argument (the parameter to toggle)");
+		Tracker.write("Error: The 'toggle' command requires exactly one argument (the parameter to toggle)", who, "", "Tracker");
 		break;
 	    }
 	    Tracker.setConfigParam(who, tokens[2], null);
@@ -227,7 +235,7 @@ var Tracker = Tracker || {
 	    Tracker.showTrackerHelp(who, tokens[0]);
 	    break;
 	default:
-	    sendChat("Tracker", who + "Error: Unrecognized command: " + tokens[0]);
+	    Tracker.write("Error: Unrecognized command: " + tokens[0], who, "", "Tracker");
 	    Tracker.showTrackerHelp(who, tokens[0]);
 	}
     },
@@ -246,19 +254,21 @@ var Tracker = Tracker || {
     },
 
     showStatusHelp: function(who, cmd){
-	sendChat("Tracker", who + cmd + " commands:");
-	sendChat("Tracker", who + "help:               display this help message");
-	sendChat("Tracker", who + "add DUR ICON DESC:  add DUR rounds of status effect with specified icon and description to selected tokens");
-	sendChat("Tracker", who + "list:               list all status effects for selected tokens");
-	sendChat("Tracker", who + "show:               synonym for list");
-	sendChat("Tracker", who + "remove [ID]:        remove specified status effect, or all status effects from selected tokens");
-	sendChat("Tracker", who + "rem, delete, del:   synonyms for remove");
-	sendChat("Tracker", who + "icons:              list available status icons and aliases");
+	Tracker.write(cmd + " commands:", who, "", "Tracker");
+	helpMsg  = "help:               display this help message\n";
+	helpMsg += "add DUR ICON DESC:  add DUR rounds of status effect with specified icon and description to selected tokens\n";
+	helpMsg += "list:               list all status effects for selected tokens\n";
+	helpMsg += "show:               synonym for list\n";
+	helpMsg += "remove [ID]:        remove specified status effect, or all status effects from selected tokens\n";
+	helpMsg += "rem, delete, del:   synonyms for remove\n";
+	helpMsg += "icons:              list available status icons and aliases";
+	Tracker.write(helpMsg, who, "font-size: x-small; font-family: monospace", "Tracker");
     },
 
-    handleStatusMessage: function(who, msg, selected){
-	var tokens = msg.split(" ");
-	who = "/w " + who.replace(" (GM)", "") + " ";
+    handleStatusMessage: function(tokens, msg){
+	var who = msg.who;
+	var selected = msg.selected;
+	msg = msg.content;
 	if ((tokens.length > 1) && (tokens[1] == "public")){
 	    who = "";
 	    tokens.splice(1, 1);
@@ -267,15 +277,15 @@ var Tracker = Tracker || {
 	switch (tokens[1]){
 	case "add":
 	    if ((!selected) || (selected.length <= 0)){
-		sendChat("Tracker", who + "Error: The 'add' command requires at least one selected token");
+		Tracker.write("Error: The 'add' command requires at least one selected token", who, "", "Tracker");
 		break;
 	    }
 	    if (tokens.length < 5){
-		sendChat("Tracker", who + "Error: The 'add' command requires three arguments (duration, icon, description)");
+		Tracker.write("Error: The 'add' command requires three arguments (duration, icon, description)", who, "", "Tracker");
 		break;
 	    }
 	    if (state.InitiativeTracker.round <= 0){
-		sendChat("Tracker", who + "Error: Initiative not being tracked");
+		Tracker.write("Error: Initiative not being tracked", who, "", "Tracker");
 		break;
 	    }
 	    for (var i = 0; i < selected.length; i++){
@@ -288,7 +298,7 @@ var Tracker = Tracker || {
 	case "list":
 	case "show":
 	    if ((!selected) || (selected.length <= 0)){
-		sendChat("Tracker", who + "Error: The '" + tokens[1] + "' command requires at least one selected token");
+		Tracker.write("Error: The '" + tokens[1] + "' command requires at least one selected token", who, "", "Tracker");
 		break;
 	    }
 	    var tokenIds = [];
@@ -320,15 +330,26 @@ var Tracker = Tracker || {
 		byToken[status.token].push("" + i + ": " + status.name + " (" + duration + ")");
 	    }
 	    for (var i = 0; i < tokenIds.length; i++){
-		var head = (who ? who : "/desc ");
 		var from = (who ? "Tracker" : "");
 		if (byToken[tokenIds[i]].length <= 0){
-		    sendChat(from, head + "No status effects for token " + tokenNames[tokenIds[i]]);
+		    var output = "No status effects for token " + tokenNames[tokenIds[i]];
+		    if (who){
+			Tracker.write(output, who, "", from);
+		    }
+		    else{
+			sendChat(from, "/desc " + output);
+		    }
 		    continue;
 		}
-		sendChat(from, head + "Status effects for token " + tokenNames[tokenIds[i]] + ":");
+		var output = "Status effects for token " + tokenNames[tokenIds[i]] + ":";
+		if (who){
+		    Tracker.write(output, who, "", from);
+		}
+		else{
+		    sendChat(from, "/desc " + output);
+		}
 		for (var j = 0; j < byToken[tokenIds[i]].length; j++){
-		    sendChat("Tracker", who + byToken[tokenIds[i]][j]);
+		    Tracker.write(byToken[tokenIds[i]][j], who, "", "Tracker");
 		}
 	    }
 	    break;
@@ -354,12 +375,12 @@ var Tracker = Tracker || {
 	    }
 	    // ID specified or nothing selected; require ID and remove specified status effect
 	    if (tokens.length != 3){
-		sendChat("Tracker", who + "Error: The '" + tokens[1] + "' command requires an argument (status effect ID)");
+		Tracker.write("Error: The '" + tokens[1] + "' command requires an argument (status effect ID)", who, "", "Tracker");
 		break;
 	    }
 	    var idx = parseInt(tokens[2]);
 	    if ((idx < 0) || (idx >= state.InitiativeTracker.status.length)){
-		sendChat("Tracker", who + "Error: Invalid status effect ID: " + tokens[2]);
+		Tracker.write("Error: Invalid status effect ID: " + tokens[2], who, "", "Tracker");
 		break;
 	    }
 	    var status = state.InitiativeTracker.status[idx];
@@ -368,17 +389,20 @@ var Tracker = Tracker || {
 	    state.InitiativeTracker.status.splice(idx, 1);
 	    break;
 	case "icons":
-	    sendChat("Tracker", who + "Status Icons: " + Tracker.ALL_STATUSES.join(", "));
-	    sendChat("Tracker", who + "Status Aliases:");
+	    Tracker.write("Status Icons: " + Tracker.ALL_STATUSES.join(", "), who, "", "Tracker");
+	    Tracker.write("Status Aliases:", who, "", "Tracker");
+	    var output = "";
 	    for (var k in Tracker.STATUS_ALIASES){
-		sendChat("Tracker", who + k + ": " + Tracker.STATUS_ALIASES[k]);
+		if (output){ output += "\n"; }
+		output += k + ": " + Tracker.STATUS_ALIASES[k];
 	    }
+	    Tracker.write(output, who, "", "Tracker");
 	    break;
 	case "help":
 	    Tracker.showStatusHelp(who, tokens[0]);
 	    break;
 	default:
-	    sendChat("Tracker", who + "Error: Unrecognized command: " + tokens[0]);
+	    Tracker.write("Error: Unrecognized command: " + tokens[0], who, "", "Tracker");
 	    Tracker.showStatusHelp(who, tokens[0]);
 	}
     },
@@ -386,14 +410,23 @@ var Tracker = Tracker || {
     handleChatMessage: function(msg){
 	if (msg.type != "api"){ return; }
 
-	if ((msg.content == "!tracker") || (msg.content.indexOf("!tracker ") == 0)){ return Tracker.handleTrackerMessage(msg.who, msg.content); }
-	if ((msg.content == "!status") || (msg.content.indexOf("!status ") == 0)){ return Tracker.handleStatusMessage(msg.who, msg.content, msg.selected); }
+	if ((msg.content == "!tracker") || (msg.content.indexOf("!tracker ") == 0)){ return Tracker.handleTrackerMessage(msg.content.split(" "), msg); }
+	if ((msg.content == "!status") || (msg.content.indexOf("!status ") == 0)){ return Tracker.handleStatusMessage(msg.content.split(" "), msg); }
     },
 
     registerTracker: function(){
 	Tracker.initConfig();
 	on("change:campaign:turnorder", Tracker.handleTurnChange);
-	on("chat:message", Tracker.handleChatMessage);
+	if ((typeof(Shell) != "undefined") && (Shell) && (Shell.registerCommand)){
+	    Shell.registerCommand("!tracker", "!tracker <subcommand> [args]", "Configure the initiative tracker", Tracker.handleTrackerMessage);
+	    Shell.registerCommand("!status", "!status <subcommand> [args]", "Track status effects on tokens", Tracker.handleStatusMessage);
+	    if (Shell.write){
+		Tracker.write = Shell.write;
+	    }
+	}
+	else{
+	    on("chat:message", Tracker.handleChatMessage);
+	}
     }
 };
 
