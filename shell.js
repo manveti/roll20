@@ -3,21 +3,22 @@ var Shell = Shell || {
 
     // I/O functions
 
-    write: function(s, to){
-/////
-//
-	//temporary stand-in
+    rawWrite: function(s, to, style){
+	s = s.replace(/\n/g, "<br>");
+	s = "<div style=\"white-space: pre-wrap; padding: 0px; margin: 0px" + (style ? "; " + style : "") + "\">" + s + "</div>";
 	if ((to) && (s) && (s.charAt(0) != '/')){
 	    s = "/w " + to.split(" ", 1)[0] + " " + s;
 	}
-	sendChat("Shell", s.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\t/g, "&emsp;"));
-//
-/////
+	sendChat("Shell", s);
+    },
+
+    write: function(s, to, style){
+	Shell.rawWrite(s.replace(/</g, "&lt;").replace(/>/g, "&gt;"), to, style);
     },
 
     writeAndLog: function(s, to){
 	Shell.write(s, to);
-	log(s);
+	_.each(s.split("\n"), log);
     },
 
     writeErr: function(s){
@@ -148,11 +149,16 @@ var Shell = Shell || {
 	    }
 	}
 	commandKeys.sort();
+	var helpMsg = "";
 	for (var i = 0; i < commandKeys.length; i++){
-	    Shell.write(Shell.commands[commandKeys[i]].signature, msg.who);
+	    helpMsg += (i > 0 ? "\n" : "") + Shell.commands[commandKeys[i]].signature;
 	    if (Shell.commands[commandKeys[i]].description){
-		Shell.write("\t" + Shell.commands[commandKeys[i]].description, msg.who);
+		helpMsg += "\n\t" + Shell.commands[commandKeys[i]].description;
 	    }
+	}
+	if (helpMsg){
+	    Shell.write("Shell Commands:", msg.who);
+	    Shell.write(helpMsg, msg.who, "font-size: x-small");
 	}
     },
 
