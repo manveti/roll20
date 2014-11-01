@@ -59,8 +59,8 @@ var Tracker = Tracker || {
     },
 
     handleTurnChange: function(newTurnOrder, oldTurnOrder){
-	var newTurns = JSON.parse(newTurnOrder.get('turnorder') || "[]");
-	var oldTurns = JSON.parse(oldTurnOrder.turnorder || "[]");
+	var newTurns = JSON.parse((typeof(newTurnOrder) == typeof("") ? newTurnOrder : newTurnOrder.get('turnorder') || "[]"));
+	var oldTurns = JSON.parse((typeof(oldTurnOrder) == typeof("") ? oldTurnOrder : oldTurnOrder.turnorder || "[]"));
 
 	if ((!newTurns) || (!oldTurns)){ return; }
 
@@ -179,6 +179,11 @@ var Tracker = Tracker || {
 	Tracker.write(cmd + " commands:", who, "", "Tracker");
 	var helpMsg = "";
 	helpMsg += "help:               display this help message\n";
+	helpMsg += "round [NUM]:        display the current round number, or set round number to NUM\n";
+	helpMsg += "forward:            advance the initiative counter to the next token\n";
+	helpMsg += "fwd:                synonym for forward\n";
+	helpMsg += "back:               rewind the initiative counter to the previous token\n";
+	helpMsg += "start:              sort the tokens in the initiative counter and begin tracking\n";
 	helpMsg += "get [PARAM]:        display the value of the specified config parameter, or all config parameters\n";
 	helpMsg += "set PARAM [VALUE]:  set the specified config parameter to the specified value (defaults to true)\n";
 	helpMsg += "enable PARAM:       set the specified config parameter to true\n";
@@ -196,6 +201,84 @@ var Tracker = Tracker || {
 	}
 	if (tokens.length < 2){ return Tracker.showTrackerHelp(who, tokens[0]); }
 	switch (tokens[1]){
+	case "round":
+	    if (tokens.length <= 2){ Tracker.write("Current Round: " + state.InitiativeTracker.round, who, "", "Tracker"); }
+	    else{
+		var round = parseInt(tokens[2]);
+		if (round != state.InitiativeTracker.round){
+		    state.InitiativeTracker.round = round;
+		    if (state.InitiativeTracker.announceRounds){ sendChat("", "/desc Moved to Round " + round); }
+		    // update all statuses
+		    var curCount = state.InitiativeTracker.count;
+		    if (!state.InitiativeTracker.highToLow){ curCount = -curCount; }
+		    for (var i = 0; i < state.InitiativeTracker.status.length; i++){
+			var status = state.InitiativeTracker.status[i];
+			var token = getObj("graphic", status.token);
+			if (!token){
+			    // token associated with this status doesn't exist anymore; remove it
+			    state.InitiativeTracker.status.splice(i, 1);
+			    i -= 1;
+			    continue;
+			}
+			var statusCount = status.count;
+			if (!state.InitiativeTracker.highToLow){ statusCount = -statusCount; }
+			var statusDuration = status.expires - round;
+			if (statusCount > curCount){
+			    // haven't yet come to this status' initiative count; increment remaining duration
+			    statusDuration += 1;
+			}
+			if (statusDuration < 0){
+			    // status expired; remove marker and announce expiration
+			    token.set("status_" + status.status, false);
+			    state.InitiativeTracker.status.splice(i, 1);
+			    i -= 1;
+			    Tracker.announceStatusExpiration(status.name, token.get('name'));
+			}
+			else if (statusDuration < 10){
+			    // status has nine or fewer rounds left; update marker to reflect remaining rounds
+			    token.set("status_" + status.status, statusDuration);
+			}
+		    }
+		}
+	    }
+	    break;
+	case "forward":
+	case "fwd":
+	    var oldTurnOrderStr = Campaign().get('turnorder') || "[]";
+	    var turnOrder = JSON.parse(oldTurnOrderStr);
+	    if (turnOrder.length > 0){
+		turnOrder.push(turnOrder.shift());
+		var newTurnOrderStr = JSON.stringify(turnOrder);
+		Campaign().set('turnorder', newTurnOrderStr);
+		Tracker.handleTurnChange(newTurnOrderStr, oldTurnOrderStr);
+	    }
+	    break;
+	case "back":
+	    var oldTurnOrderStr = Campaign().get('turnorder') || "[]";
+	    var turnOrder = JSON.parse(oldTurnOrderStr);
+	    if (turnOrder.length > 0){
+		// as far as handleTurnChange is concerned, we're going forward until one count back in the next round;
+		// decrement round counter so that handleTurnChange will do the right thing
+		state.InitiativeTracker.round -= 1;
+		turnOrder.unshift(turnOrder.pop());
+		var newTurnOrderStr = JSON.stringify(turnOrder);
+		Campaign().set('turnorder', newTurnOrderStr);
+		Tracker.handleTurnChange(newTurnOrderStr, oldTurnOrderStr);
+	    }
+	    break;
+	case "start":
+	    var turnOrder = JSON.parse(Campaign().get('turnorder') || "[]");
+	    if (turnOrder.length > 0){
+		turnOrder.sort(function(x, y){
+				    return (state.InitiativeTracker.highToLow ? y.pr - x.pr : x.pr - y.pr);
+				});
+		Campaign().set('turnorder', JSON.stringify(turnOrder));
+		state.InitiativeTracker.round = 1;
+		state.InitiativeTracker.count = turnOrder[0].pr;
+		Tracker.announceRound(state.InitiativeTracker.round);
+		Tracker.announceTurn(turnOrder[0].pr, turnOrder[0].custom, turnOrder[0].id);
+	    }
+	    break;
 	case "get":
 	    if (tokens.length <= 2){ Tracker.getConfigParam(who, null); }
 	    else { Tracker.getConfigParam(who, tokens[2]); }
