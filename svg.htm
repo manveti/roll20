@@ -1,0 +1,228 @@
+<html>
+<body>
+<script language="javascript"><!--
+function getPathToken(path){
+    if (path.length <= 0){ return ""; }
+
+    var token = path.shift();
+    while ((!token) && (path.length > 0)){
+	token = path.shift();
+    }
+    return token;
+}
+
+function processLine(outputBox, x, y){
+/////
+//
+    // no "!walls lineto" command, so use curveto instead
+    processCubicCurve(outputBox, x, y, x, y, x, y);
+//
+/////
+}
+
+function processQuadraticCurve(outputBox, x1, y1, x, y){
+/////
+//
+    // no "!walls quadraticto" or similar command, so use curveto instead
+    processCubicCurve(outputBox, x1, y1, x1, y1, x, y);
+//
+/////
+}
+
+function processCubicCurve(outputBox, x1, y1, x2, y2, x, y){
+    outputBox.innerHTML += "!walls curveto " + x1 + " " + y1 + " " + x2 + " " + y2 + " " + x + " " + y + "\n";
+}
+
+function processCommand(outputBox, path, startPos, curPos, lastCtrl, cmd){
+    switch(cmd){
+    case "M":
+	curPos[0] = 0;
+	curPos[1] = 0;
+	// fall through to "m"
+    case "m":
+	// move to point
+	curPos[0] += parseFloat(getPathToken(path));
+	curPos[1] += parseFloat(getPathToken(path));
+	outputBox.innerHTML += "!walls moveto " + curPos[0] + " " + curPos[1] + "\n";
+	break;
+    case "Z":
+    case "z":
+	// close path (line to startPos)
+	curPos[0] = startPos[0];
+	curPos[1] = startPos[1];
+	processLine(outputBox, curPos[0], curPos[1]);
+	break;
+    case "L":
+	curPos[0] = 0;
+	curPos[1] = 0;
+	// fall through to "l"
+    case "l":
+	// line to point
+	curPos[0] += parseFloat(getPathToken(path));
+	curPos[1] += parseFloat(getPathToken(path));
+	processLine(outputBox, curPos[0], curPos[1]);
+	break;
+    case "H":
+	curPos[0] = 0;
+	// fall through to "h"
+    case "h":
+	// horizontal line to point
+	curPos[0] += parseFloat(getPathToken(path));
+	processLine(outputBox, curPos[0], curPos[1]);
+	break;
+    case "V":
+	curPos[1] = 0;
+	// fall through to "v"
+    case "v":
+	// horizontal line to point
+	curPos[1] += parseFloat(getPathToken(path));
+	processLine(outputBox, curPos[0], curPos[1]);
+	break;
+    case "C":
+	curPos[0] = 0;
+	curPos[1] = 0;
+	// fall through to "c"
+    case "c":
+	// cubic curve to point
+	var firstCtrl = [(curPos[0] + parseFloat(getPathToken(path))), (curPos[1] + parseFloat(getPathToken(path)))];
+	lastCtrl[0] = curPos[0] + parseFloat(getPathToken(path));
+	lastCtrl[1] = curPos[1] + parseFloat(getPathToken(path));
+	curPos[0] += parseFloat(getPathToken(path));
+	curPos[1] += parseFloat(getPathToken(path));
+	processCubicCurve(outputBox, firstCtrl[0], firstCtrl[1], lastCtrl[0], lastCtrl[1], curPos[0], curPos[1]);
+	break;
+    case "S":
+    case "s":
+	// smooth cubic curve to point (firstCtrl is reflection of lastCtrl about curPos)
+	var firstCtrl = [curPos[0] + curPos[0] - lastCtrl[0], curPos[1] + curPos[1] - lastCtrl[1]];
+	if (cmd == "S"){
+	    curPos[0] = 0;
+	    curPos[1] = 0;
+	}
+	lastCtrl[0] = curPos[0] + parseFloat(getPathToken(path));
+	lastCtrl[1] = curPos[1] + parseFloat(getPathToken(path));
+	curPos[0] += parseFloat(getPathToken(path));
+	curPos[1] += parseFloat(getPathToken(path));
+	processCubicCurve(outputBox, firstCtrl[0], firstCtrl[1], lastCtrl[0], lastCtrl[1], curPos[0], curPos[1]);
+	break;
+    case "Q":
+	curPos[0] = 0;
+	curPos[1] = 0;
+	// fall through to "q"
+    case "q":
+	// quadratic curve to point
+	lastCtrl[0] = curPos[0] + parseFloat(getPathToken(path));
+	lastCtrl[1] = curPos[1] + parseFloat(getPathToken(path));
+	curPos[0] += parseFloat(getPathToken(path));
+	curPos[1] += parseFloat(getPathToken(path));
+	processQuadraticCurve(outputBox, lastCtrl[0], lastCtrl[1], curPos[0], curPos[1]);
+	break;
+    case "T":
+    case "t":
+	// smooth quadratic curve to point (firstCtrl is reflection of lastCtrl about curPos)
+	lastCtrl[0] = curPos[0] + curPos[0] - lastCtrl[0];
+	lastCtrl[1] = curPos[1] + curPos[1] - lastCtrl[1];
+	if (cmd == "T"){
+	    curPos[0] = 0;
+	    curPos[1] = 0;
+	}
+	curPos[0] += parseFloat(getPathToken(path));
+	curPos[1] += parseFloat(getPathToken(path));
+	processQuadraticCurve(outputBox, lastCtrl[0], lastCtrl[1], curPos[0], curPos[1]);
+	break;
+    default:
+	outputBox.innerHTML += "Unrecognized command: " + cmd + "\n";
+    }
+}
+
+function processPath(outputBox, path){
+    path = path.replace(/[,\s]+/g, " ").replace(/\s*([a-zA-Z])\s*/g, " $1 ").split(" ");
+    var startPos = [0, 0];
+    var curPos = [0, 0];
+    var lastCtrl = [0, 0];
+    var curCmd = null;
+    for (var token = getPathToken(path); token; token = getPathToken(path)){
+	if (/^\d+\.?\d*$/.test(token)){
+	    // number: push token back onto head of path and repeat previous command
+	    path.splice(0, 0, token);
+	    processCommand(outputBox, path, startPos, curPos, lastCtrl, curCmd);
+	}
+	else{
+	    // command: save starting position and command, and process command
+	    startPos[0] = curPos[0];
+	    startPos[1] = curPos[1];
+	    curCmd = token;
+	    processCommand(outputBox, path, startPos, curPos, lastCtrl, curCmd);
+	}
+    }
+}
+
+function processSvg(svg){
+    var outputBox = document.getElementById("outputBox");
+
+    outputBox.innerHTML += "\n!walls begin\n!walls viewbox " + svg.attributes['viewBox'].nodeValue.replace(/^\s*0\s*0\s*(\d+\s*\d+)/, "$1") + "\n";
+
+    var paths = svg.getElementsByTagName("path");
+    for (var i = 0; i < paths.length; i++){
+	processPath(outputBox, paths[i].attributes['d'].nodeValue);
+    }
+
+    outputBox.innerHTML += "!walls end\n";
+}
+
+function handleFileLoad(reader){
+    if (!reader.result){
+	document.getElementById("outputBox").innerHTML = "Error loading file: " + reader.error;
+	return;
+    }
+
+    try{
+	var dom;
+	if (window.DOMParser){
+	    var parser = new DOMParser();
+	    dom = parser.parseFromString(reader.result, "text/xml");
+	}
+	else{
+	    dom = new ActiveXObject("Microsoft.XMLDOM");
+	    dom.async = false;
+	    dom.loadXML(reader.result);
+	}
+	if (dom.parseError){
+	    document.getElementById("outputBox").innerHTML = "Error parsing file:\n" + dom.parseError.reason;
+	    return;
+	}
+	if (!dom.documentElement){
+	    document.getElementById("outputBox").innerHTML = "Error parsing file";
+	}
+	if (dom.documentElement.nodeName == "parsererror"){
+	    document.getElementById("outputBox").innerHTML = "Error parsing file:\n" + dom.documentElement.childNodes[0].nodeValue;
+	    return;
+	}
+
+	document.getElementById("outputBox").innerHTML = "";
+	var svgs = dom.getElementsByTagName("svg");
+	for (var i = 0; i < svgs.length; i++){
+	    processSvg(svgs[i]);
+	}
+
+    }
+    catch (e){
+	document.getElementById("outputBox").innerHTML = "Error parsing file:\n" + e.message;
+	return;
+    }
+}
+
+function handleFileSelect(){
+    document.getElementById("outputBox").innerHTML = "loading...";
+    var files = document.getElementById("fileBox").files;
+    for (var i = 0; i < files.length; i++){
+	var reader = new FileReader();
+	reader.onload = (function(r){ return function(){ handleFileLoad(r); }; })(reader);
+	reader.readAsText(files[i]);
+    }
+}
+//--></script>
+<input type="file" id="fileBox" onChange="handleFileSelect()">
+<div id="outputBox" style="white-space: pre"></div>
+</body>
+</html>
