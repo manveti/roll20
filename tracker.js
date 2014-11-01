@@ -30,7 +30,7 @@ var Tracker = Tracker || {
 	if (who){
 	    who = "/w " + who.split(" ", 1)[0] + " ";
 	}
-	sendChat(from, who + s.replace(/\n/g, "<br>"));
+	sendChat(from, who + s.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>"));
     },
 
     reset: function(){
@@ -177,13 +177,14 @@ var Tracker = Tracker || {
 
     showTrackerHelp: function(who, cmd){
 	Tracker.write(cmd + " commands:", who, "", "Tracker");
-	helpMsg  = "help:               display this help message\n";
+	var helpMsg = "";
+	helpMsg += "help:               display this help message\n";
 	helpMsg += "get [PARAM]:        display the value of the specified config parameter, or all config parameters\n";
 	helpMsg += "set PARAM [VALUE]:  set the specified config parameter to the specified value (defaults to true)\n";
 	helpMsg += "enable PARAM:       set the specified config parameter to true\n";
 	helpMsg += "disable PARAM:      set the specified config parameter to false\n";
 	helpMsg += "toggle PARAM:       toggle the specified config parameter between true and false";
-	Tracker.write(helpMsg, who, "font-size: x-small; font-family: monospace", "Tracker");
+	Tracker.write(helpMsg, who, "font-size: small; font-family: monospace", "Tracker");
     },
 
     handleTrackerMessage: function(tokens, msg){
@@ -255,14 +256,15 @@ var Tracker = Tracker || {
 
     showStatusHelp: function(who, cmd){
 	Tracker.write(cmd + " commands:", who, "", "Tracker");
-	helpMsg  = "help:               display this help message\n";
+	var helpMsg = "";
+	helpMsg += "help:               display this help message\n";
 	helpMsg += "add DUR ICON DESC:  add DUR rounds of status effect with specified icon and description to selected tokens\n";
 	helpMsg += "list:               list all status effects for selected tokens\n";
 	helpMsg += "show:               synonym for list\n";
 	helpMsg += "remove [ID]:        remove specified status effect, or all status effects from selected tokens\n";
 	helpMsg += "rem, delete, del:   synonyms for remove\n";
 	helpMsg += "icons:              list available status icons and aliases";
-	Tracker.write(helpMsg, who, "font-size: x-small; font-family: monospace", "Tracker");
+	Tracker.write(helpMsg, who, "font-size: small; font-family: monospace", "Tracker");
     },
 
     handleStatusMessage: function(tokens, msg){
