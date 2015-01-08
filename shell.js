@@ -198,12 +198,12 @@ var Shell = Shell || {
 	var playerId = (args.length > 3 ? args[3] : "");
 	if (playerId){
 	    var players = _.union(findObjs({_type: "player", _displayname: playerId}), findObjs({_type: "player", _d20userid: playerId}));
+	    if (players.length > 1){
+		Shell.write("Found more than one user matching " + playerId, msg.who);
+	    }
 	    if (players.length < 1){
 		Shell.write("Unable to find user matching " + playerId, msg.who);
 		players = findObjs({_type: "player"});
-	    }
-	    if (players.length > 1){
-		Shell.write("Found more than one user matching " + playerId, msg.who);
 	    }
 	    if (players.length != 1){
 		Shell.write("Please try again using one of: " + (_.map(players, function(p){ return p.get('_d20userid'); })).join(", "), msg.who);
