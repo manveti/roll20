@@ -1,0 +1,174 @@
+<html>
+<body>
+<script language="javascript"><!--
+BINARY_PRECEDENCE = {
+    '?': 1, ':': 2,
+    '||': 3, '&&': 4,
+    '|': 5, '^': 6, '&': 7,
+    '=': 8, '!=': 8,
+    '>=': 9, '>': 9, '<': 9, '<=': 9,
+    '<<': 10, '>>': 10,
+    '+': 11, '-': 11,
+    '*': 12, '/': 12, '%': 12,
+    '**': 14
+};
+UNARY_PRECEDENCE = {'!': 13, '~': 13, '-': 13};
+
+CLOSERS = {'(': ")", '{': "}"};
+
+function getToken(s){
+    if (!s){ return s; }
+
+    var m;
+
+    function retVal(tokType, matchObj){
+	return {'type': tokType, 'text': matchObj[0], 'match': matchObj};
+    }
+
+    m = s.match(/^\s+/);
+    if (m){ return retVal("whitespace", m); }
+    m = s.match(/^[({]/);
+    if (m){ return retVal("opengroup", m); }
+    m = s.match(/^[)}]/);
+    if (m){ return retVal("closegroup", m); }
+    m = s.match(/^((\d+(\.\d+)?)|(\.\d+))/);
+    if (m){ return retVal("number", m); }
+    m = s.match(/^((\|\|)|(&&)|(!=)|(>=)|(<=)|(<<)|(>>)|(\*\*)|[?:|^&=><%])/);
+    if (m){ return retVal("extoperator", m); }
+    m = s.match(/^[-+*/]/);
+    if (m){ return retVal("baseoperator", m); }
+    m = s.match(/^\[([^\]]+)\]/);
+    if (m){ return retVal("label", m); }
+}
+
+function popToken(state){
+    state.tok = getToken(state.s);
+    if (state.tok){ state.s = state.s.substring(state.tok.text.length); }
+    return state;
+}
+
+function parseExpression(s, until){
+    if (typeof(s) == typeof("")){ s = {'s': s}; }
+    var operators = [{'precedence': 0}], operands = [];
+
+    function popOperator(){
+	var op = operators.pop();
+	var right = operands.pop();
+	if (op.unary){
+	    operands.push({'type': (op.type == "baseoperator" ? "unop" : "unopex"),
+			    'operator': op.text, 'operand': right});
+	    return;
+	}
+	var left = operands.pop();
+	if (op.text != ":"){
+	    operands.push({'type': (op.type == "baseoperator" ? "binop" : "binopex"),
+			    'operator': op.text, 'left': left, 'right': right});
+	    return;
+	}
+	op = operators.pop();
+	if (op.text != "?"){ return "Error: Expected ? but got " + op.text; }
+	var cond = operands.pop();
+	operands.push({'type': "cond", 'cond': cond, 'left': left, 'right': right});
+    }
+
+    function pushOperator(op){
+	var err;
+	op.precedence = BINARY_PRECEDENCE[op.text] || UNARY_PRECEDENCE[op.text] || 0;
+	while (operators[operators.length - 1].precedence >= op.precedence){
+	    err = popOperator();
+	    if (err){ return err; }
+	}
+	operators.push(op);
+    }
+
+    function parseHelper(){
+	var err;
+
+	popToken(s);
+	while (s.tok.type == "whitespace"){ popToken(s); }
+	switch (s.tok.type){
+	case "number":
+	    operands.push({'type': "number", 'value': s.tok.text});
+	    return;
+	case "opengroup":
+	    var opener = s.tok.text, closer = CLOSERS[opener];
+	    operands.push(parseExpression(s, closer));
+	    if (s.tok.text != closer){
+		return "Error: Expected '" + closer + "' to close '" + opener + "', but got '" + s.tok.text + "'";
+	    }
+	    return;
+	case "extoperator":
+	case "baseoperator":
+	    if (!UNARY_PRECEDENCE[s.tok.text]){ return "Error: " + s.tok.text + " is not a unary operator"; }
+	    s.tok.unary = true;
+	    err = pushOperator(s.tok);
+	    if (err){ return err; }
+	    return parseHelper();
+	}
+	return "Error: Unrecognized token: " + s.tok.text;
+    }
+
+    var err = parseHelper();
+    if (err){ return err; }
+    for (popToken(s); (s.tok) && (s.tok.text != until); popToken(s)){
+	switch(s.tok.type){
+	case "extoperator":
+	case "baseoperator":
+	    err = pushOperator(s.tok);
+	    if (err){ return err; }
+	    err = parseHelper();
+	    if (err){ return err; }
+	    break;
+	case "label":
+	    var operand = operands.pop();
+	    if (operand){
+		operand.label = s.tok.match[1];
+		operands.push(operand);
+	    }
+	    break;
+	}
+    }
+    while (operators.length > 1){
+	err = popOperator();
+	if (err){ return err; }
+    }
+
+    return operands.pop();
+}
+
+function printTreeHelper(t){
+    switch(t.type){
+    case "number":
+	return t.value;
+    case "unop":
+    case "unopex":
+	return "(" + t.operator + printTree(t.operand) + ")";
+    case "binop":
+    case "binopex":
+	return "(" + printTree(t.left) + " " + t.operator + " " + printTree(t.right) + ")";
+    case "cond":
+	return "(" + printTree(t.cond) + " ? " + printTree(t.left) + " : " + printTree(t.right) + ")";
+    default:
+	return "unknown type: " + t.type;
+    }
+}
+
+function printTree(t){
+    var retval = printTreeHelper(t);
+    if (t.label){ retval += "[" + t.label + "]"; }
+    return retval;
+}
+
+function processInput(){
+    var inBox = document.getElementById("inbox");
+    var outBox = document.getElementById("outbox");
+    var expTree = parseExpression(inBox.value);
+    var output = (expTree ? (typeof(expTree) == typeof("") ? expTree : printTree(expTree)) : "n/a");
+    outBox.value = output;
+}
+//--></script>
+<input id="inbox">
+<input type="button" onClick="processInput()" value="Do It"><br>
+<textarea id="outbox"></textarea>
+</body>
+</html>
