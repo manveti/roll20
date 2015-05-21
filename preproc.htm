@@ -33,18 +33,41 @@ function getToken(s){
     if (m){ return retVal("closegroup", m); }
     m = s.match(/^((\d+(\.\d+)?)|(\.\d+))/);
     if (m){ return retVal("number", m); }
-    m = s.match(/^((\|\|)|(&&)|(!=)|(>=)|(<=)|(<<)|(>>)|(\*\*)|[?:|^&=><%])/);
+    m = s.match(/^['"]/);
+    if (m){ return retVal("quote", m); }
+    m = s.match(/^((\|\|)|(&&)|(!=)|(>=)|(<=)|(<<)|(>>)|(\*\*)|[?:|^&=><%!~])/);
     if (m){ return retVal("extoperator", m); }
     m = s.match(/^[-+*/]/);
     if (m){ return retVal("baseoperator", m); }
     m = s.match(/^\[([^\]]+)\]/);
     if (m){ return retVal("label", m); }
+    m = s.match(/^\${([^'"$}][^}]*)}/);
+    if (m){ return retVal("variable", m); }
+    m = s.match(/^\${/);
+    if (m){ return retVal("openvariable", m); }
 }
 
 function popToken(state){
     state.tok = getToken(state.s);
     if (state.tok){ state.s = state.s.substring(state.tok.text.length); }
     return state;
+}
+
+function popString(state, delim){
+    var i = -1, j = i;
+    while (((i - j) & 1) == 0){
+	i = state.s.indexOf(delim, i + 1);
+	if (i < 0){ return; }
+	j = i - 1;
+	while ((j >= 0) && (state.s.charAt(j) == '\\')){ j--; }
+    }
+    function replaceEscapes(s){
+	return s.replace(/\\n/g, "\n").replace(/\\r/g, "\r").replace(/\\t/g, "\t").replace(/\\/g, "");
+    }
+    var retval = state.s.substring(0, i).split("\\\\").map(replaceEscapes).join("\\");
+    state.s = state.s.substring(i);
+    popToken(state);
+    return retval;
 }
 
 function parseExpression(s, until){
@@ -73,7 +96,7 @@ function parseExpression(s, until){
 
     function pushOperator(op){
 	var err;
-	op.precedence = BINARY_PRECEDENCE[op.text] || UNARY_PRECEDENCE[op.text] || 0;
+	op.precedence = (op.unary ? UNARY_PRECEDENCE[op.text] : BINARY_PRECEDENCE[op.text]) || 0;
 	while (operators[operators.length - 1].precedence >= op.precedence){
 	    err = popOperator();
 	    if (err){ return err; }
@@ -85,10 +108,24 @@ function parseExpression(s, until){
 	var err;
 
 	popToken(s);
-	while (s.tok.type == "whitespace"){ popToken(s); }
+	if (!s.tok){ return "Error: Unrecognized token: " + s.s.split(" ", 1)[0]; }
+	while (s.tok.type == "whitespace"){
+	    popToken(s);
+	    if (!s.tok){ return "Error: Unrecognized token: " + s.s.split(" ", 1)[0]; }
+	}
 	switch (s.tok.type){
 	case "number":
 	    operands.push({'type': "number", 'value': s.tok.text});
+	    return;
+	case "variable":
+	    operands.push({'type': "variable", 'value': s.tok.match[1]});
+	    return;
+	case "quote":
+	    var str = popString(s, s.tok.text);
+	    if (typeof(str) != typeof("")){
+		return "Error: Unterminated string";
+	    }
+	    operands.push({'type': "string", 'value': str});
 	    return;
 	case "opengroup":
 	    var opener = s.tok.text, closer = CLOSERS[opener];
@@ -96,6 +133,13 @@ function parseExpression(s, until){
 	    if (s.tok.text != closer){
 		return "Error: Expected '" + closer + "' to close '" + opener + "', but got '" + s.tok.text + "'";
 	    }
+	    return;
+	case "openvariable":
+	    var varExp = parseExpression(s, "}");
+	    if (s.tok.text != "}"){
+		return "Error: Expected '}' to close '${', but got '" + s.tok.text + "'";
+	    }
+	    operands.push({'type': "variable", 'value': varExp});
 	    return;
 	case "extoperator":
 	case "baseoperator":
@@ -140,6 +184,26 @@ function printTreeHelper(t){
     switch(t.type){
     case "number":
 	return t.value;
+    case "variable":
+	if (typeof(t.value) == typeof("")){
+/////
+//
+	    //evaluate node with label=t.value
+	    //return result of node evaluation
+	    return "${" + t.value + "}";
+//
+/////
+	}
+/////
+//
+	//evaluate t.value as string
+	//evaluate node with label=result of t.value evaluation
+	//return result of node evaluation
+	return "${" + printTree(t.value) + "}";
+//
+/////
+    case "string":
+	return '"' + t.value.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
     case "unop":
     case "unopex":
 	return "(" + t.operator + printTree(t.operand) + ")";
