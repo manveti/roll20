@@ -82,12 +82,18 @@ function parseExpression(s, until){
 	var right = operands.pop();
 	if (op.unary){
 	    operands.push({'type': (op.type == "baseoperator" ? "unop" : "unopex"),
+			    'datatype': right.datatype,
 			    'operator': op.text, 'operand': right});
 	    return;
 	}
 	var left = operands.pop();
 	if (op.text != ":"){
+	    var datatype;
+	    if ((op.text == "d") || (op.text == "t")){ datatype = "number"; }
+	    else if (left.datatype == right.datatype){ datatype = left.datatype; }
+	    else if ((left.datatype == "string") || (right.datatype == "string")){ datatype = "string"; }
 	    operands.push({'type': (op.type == "baseoperator" ? "binop" : "binopex"),
+			    'datatype': datatype,
 			    'operator': op.text, 'left': left, 'right': right,
 			    'mods': op.mods, 'label': op.label});
 	    return;
@@ -95,7 +101,8 @@ function parseExpression(s, until){
 	op = operators.pop();
 	if (op.text != "?"){ return "Error: Expected ? but got " + op.text; }
 	var cond = operands.pop();
-	operands.push({'type': "cond", 'cond': cond, 'left': left, 'right': right});
+	operands.push({'type': "cond", 'cond': cond, 'left': left, 'right': right,
+			'datatype': (left.datatype == right.datatype ? left.datatype : undefined)});
     }
 
     function pushOperator(op){
@@ -119,7 +126,7 @@ function parseExpression(s, until){
 	}
 	switch (s.tok.type){
 	case "number":
-	    operands.push({'type': "number", 'value': s.tok.text});
+	    operands.push({'type': "number", 'datatype': "number", 'value': s.tok.text});
 	    return;
 	case "variable":
 	    operands.push({'type': "variable", 'value': s.tok.match[1]});
@@ -129,7 +136,7 @@ function parseExpression(s, until){
 	    if (typeof(str) != typeof("")){
 		return "Error: Unterminated string";
 	    }
-	    operands.push({'type': "string", 'value': str});
+	    operands.push({'type': "string", 'datatype': "string", 'value': str});
 	    return;
 	case "opengroup":
 	    var opener = s.tok.text, closer = CLOSERS[opener];
