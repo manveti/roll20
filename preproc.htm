@@ -10,7 +10,8 @@ BINARY_PRECEDENCE = {
     '<<': 10, '>>': 10,
     '+': 11, '-': 11,
     '*': 12, '/': 12, '%': 12,
-    '**': 14
+    '**': 14,
+    't': 98, 'd': 99
 };
 UNARY_PRECEDENCE = {'!': 13, '~': 13, '-': 13};
 
@@ -35,7 +36,7 @@ function getToken(s){
     if (m){ return retVal("number", m); }
     m = s.match(/^['"]/);
     if (m){ return retVal("quote", m); }
-    m = s.match(/^((\|\|)|(&&)|(!=)|(>=)|(<=)|(<<)|(>>)|(\*\*)|[?:|^&=><%!~])/);
+    m = s.match(/^((\|\|)|(&&)|(!=)|(>=)|(<=)|(<<)|(>>)|(\*\*)|[?:|^&=><%!~td])/);
     if (m){ return retVal("extoperator", m); }
     m = s.match(/^[-+*/]/);
     if (m){ return retVal("baseoperator", m); }
@@ -85,7 +86,8 @@ function parseExpression(s, until){
 	var left = operands.pop();
 	if (op.text != ":"){
 	    operands.push({'type': (op.type == "baseoperator" ? "binop" : "binopex"),
-			    'operator': op.text, 'left': left, 'right': right});
+			    'operator': op.text, 'left': left, 'right': right,
+			    'mods': op.mods, 'label': op.label});
 	    return;
 	}
 	op = operators.pop();
@@ -158,12 +160,36 @@ function parseExpression(s, until){
 	switch(s.tok.type){
 	case "extoperator":
 	case "baseoperator":
+	    rollOperator = (s.tok.text == "d" ? s.tok : null);
+/////
+//
+	    //handle "t" operator (should be followed by table name operand)
+//
+/////
 	    err = pushOperator(s.tok);
 	    if (err){ return err; }
-	    err = parseHelper();
-	    if (err){ return err; }
+	    if ((rollOperator) && (s.s.charAt(0) == 'F')){
+		operands.push({'type': "rollspec", 'value': "F"})
+		s.s = s.s.substring(1);
+	    }
+	    else{
+		err = parseHelper();
+		if (err){ return err; }
+	    }
+	    if (rollOperator){
+		var m = s.s.match(/^[a-zA-Z0-9<=>!]+/);
+		if (m){
+		    rollOperator.mods = m[0];
+		    s.s = s.s.substring(m[0].length)
+		}
+	    }
 	    break;
 	case "label":
+	    if ((operators.length > 0) && (operators[operators.length - 1].text == "d")){
+		// set label on "d" operator instead of operand (e.g. "1d6[foo]" is "(1d6)[foo]", not "1d(6[foo])")
+		operators[operators.length - 1].label = s.tok.match[1];
+		break;
+	    }
 	    var operand = operands.pop();
 	    if (operand){
 		operand.label = s.tok.match[1];
@@ -183,6 +209,7 @@ function parseExpression(s, until){
 function printTreeHelper(t){
     switch(t.type){
     case "number":
+    case "rollspec":
 	return t.value;
     case "variable":
 	if (typeof(t.value) == typeof("")){
@@ -209,7 +236,7 @@ function printTreeHelper(t){
 	return "(" + t.operator + printTree(t.operand) + ")";
     case "binop":
     case "binopex":
-	return "(" + printTree(t.left) + " " + t.operator + " " + printTree(t.right) + ")";
+	return "(" + printTree(t.left) + " " + t.operator + " " + printTree(t.right) + (t.mods || "") + ")";
     case "cond":
 	return "(" + printTree(t.cond) + " ? " + printTree(t.left) + " : " + printTree(t.right) + ")";
     default:
