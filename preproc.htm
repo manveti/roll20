@@ -42,7 +42,7 @@ function getToken(s){
     if (m){ return retVal("baseoperator", m); }
     m = s.match(/^\[([^\]]+)\]/);
     if (m){ return retVal("label", m); }
-    m = s.match(/^\${([^'"$}][^}]*)}/);
+    m = s.match(/^\${([^'"($}][^}]*)}/);
     if (m){ return retVal("variable", m); }
     m = s.match(/^\${/);
     if (m){ return retVal("openvariable", m); }
@@ -171,7 +171,7 @@ function parseExpression(s, until){
 	    }
 	    else if (s.tok.text == "t"){
 		if (s.s.charAt(0) != '['){ return "Error: 't' operator requires '[table]' argument"; }
-		var m = s.s.match(/^\[([^'"$\]][^\]]*)\]/);
+		var m = s.s.match(/^\[([^'"$(\]][^\]]*)\]/);
 		var tableExp;
 		if (m){
 		    tableExp = m[1];
