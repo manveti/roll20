@@ -46,6 +46,8 @@ function getToken(s){
     if (m){ return retVal("variable", m); }
     m = s.match(/^\${/);
     if (m){ return retVal("openvariable", m); }
+
+    return {'type': "raw", 'text': s.charAt(0)};
 }
 
 function popToken(state){
@@ -161,23 +163,35 @@ function parseExpression(s, until){
 	case "extoperator":
 	case "baseoperator":
 	    rollOperator = (s.tok.text == "d" ? s.tok : null);
-/////
-//
-	    //handle "t" operator (should be followed by table name operand)
-//
-/////
 	    err = pushOperator(s.tok);
 	    if (err){ return err; }
 	    if ((rollOperator) && (s.s.charAt(0) == 'F')){
 		operands.push({'type': "rollspec", 'value': "F"})
 		s.s = s.s.substring(1);
 	    }
+	    else if (s.tok.text == "t"){
+		if (s.s.charAt(0) != '['){ return "Error: 't' operator requires '[table]' argument"; }
+		var m = s.s.match(/^\[([^'"$\]][^\]]*)\]/);
+		var tableExp;
+		if (m){
+		    tableExp = m[1];
+		    s.s = s.s.substring(m[0].length);
+		}
+		else{
+		    s.s = s.s.substring(1);
+		    tableExp = parseExpression(s, "]");
+		    if (s.tok.text != "]"){
+			return "Error: Expected ']' to close 't[', but got '" + s.tok.text + "'";
+		    }
+		}
+		operands.push({'type': "tablename", 'value': tableExp});
+	    }
 	    else{
 		err = parseHelper();
 		if (err){ return err; }
 	    }
 	    if (rollOperator){
-		var m = s.s.match(/^[a-zA-Z0-9<=>!]+/);
+		var m = s.s.match(/^[acdfhkloprs0-9<=>!]+/);
 		if (m){
 		    rollOperator.mods = m[0];
 		    s.s = s.s.substring(m[0].length)
@@ -227,6 +241,17 @@ function printTreeHelper(t){
 	//evaluate node with label=result of t.value evaluation
 	//return result of node evaluation
 	return "${" + printTree(t.value) + "}";
+//
+/////
+    case "tablename":
+	if (typeof(t.value) == typeof("")){
+	    return "[" + t.value + "]";
+	}
+/////
+//
+	//evaluate t.value as string
+	//return "[" + result of evaluation + "]"
+	return "[" + printTree(t.value) + "]";
 //
 /////
     case "string":
