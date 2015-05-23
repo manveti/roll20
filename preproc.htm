@@ -431,6 +431,7 @@ function buildCommand(chunks, asts, evalResults){
     // traverse ASTs, collapsing as much as possible
     for (var i = 0; i < asts.length; i++){
 	if (asts[i].baseValid){ continue; } // can be handled by base expression evaluator
+	if ((asts[i].type == "string") || (asts[i].type == "number")){ continue; } // tree is fully evaluated
 	var err = lazyEval(asts[i], labels, references, unevalRefs, evalReqs, false);
 	if (typeof(err) == typeof("")){ return err; }
     }
@@ -504,7 +505,7 @@ function buildCommand(chunks, asts, evalResults){
 
     // flatten fully evaluated ASTs into strings and splice into chunks
     for (var i = asts.length - 1; i >= 0; i--){
-	if (!asts[i].baseValid){ continue; }
+	if ((!asts[i].baseValid) && (asts[i].type != "number") && (asts[i].type != "string")){ continue; }
 /////
 //
 	//if (asts[i] has unevaluated labels) and (unevalRefs.length>0): continue
