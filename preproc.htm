@@ -266,11 +266,17 @@ function parseExpression(s, until){
 function buildCommand(chunks, asts, evalResults){
     var labels = {}, references = {}, unevalRefs = [], evalReqs = [];
 
-/////
-//
-    //substitute in evalResults (delete t.mods in addition to other eval considerations)
-//
-/////
+    // substitute in results of base evaluation
+    for (var i = 0; i < evalResults.length; i++){
+	var t = evalResults[i][0];
+	delete t.operator;
+	delete t.left;
+	delete t.right;
+	t.type = "number";
+	t.datatype = "number";
+	t.value = evalResults[i][1];
+	t.baseValid = true;
+    }
 
     function lazyEval(t, labels, references, unevalRefs, evalReqs, force){
 	var x, y;
@@ -330,9 +336,10 @@ function buildCommand(chunks, asts, evalResults){
 	case "binop":
 	case "binopex":
 	    force = force || (t.type != "binop") || (t.left.datatype == "string") || (t.right.datatype == "string");
-	    x = lazyEval(t.left, labels, references, unevalRefs, evalReqs, force);
+	    var forceSubtrees = force || (t.operator == "d") || (t.operator == "t");
+	    x = lazyEval(t.left, labels, references, unevalRefs, evalReqs, forceSubtrees);
 	    if (typeof(x) == typeof("")){ return x; } // error
-	    y = lazyEval(t.right, labels, references, unevalRefs, evalReqs, force);
+	    y = lazyEval(t.right, labels, references, unevalRefs, evalReqs, forceSubtrees);
 	    if (typeof(y) == typeof("")){ return y; } // error
 	    if (force){
 		if ((x.type != "number") && (x.type != "string")){
@@ -473,6 +480,32 @@ function buildCommand(chunks, asts, evalResults){
 	unevalRefs = newUneval;
     }
 
+    function hasUnevaluatedLabels(t){
+	// base types: fully evaluated
+	if ((t.type == "number") || (t.type == "string") || (t.type == "rollspec")){ return false; }
+
+	// if we got here, node is unevaluated
+	if (t.label){ return true; }
+
+	// node has no label; check children
+	switch(t.type){
+	case "tablename":
+	case "variable":
+	    if (typeof(t.value) == typeof("")){ return false; }
+	    return hasUnevaluatedLabels(t.value);
+	case "unop":
+	case "unopex":
+	    return hasUnevaluatedLabels(t.operand);
+	case "cond":
+	    if (hasUnevaluatedLabels(t.cond)){ return true; }
+	    // fall through
+	case "binop":
+	case "binopex":
+	    if (hasUnevaluatedLabels(t.left)){ return true; }
+	    return hasUnevaluatedLabels(t.right);
+	}
+    }
+
     function flattenAST(t){
 	var retval;
 
@@ -488,7 +521,7 @@ function buildCommand(chunks, asts, evalResults){
 	    retval = "(" + t.operator + flattenAST(t.operand) + ")";
 	    break;
 	case "binop":
-	    retval = "(" + flattenAST(t.left) + t.operator + flattenAST(t.right) + ")";
+	    retval = "(" + flattenAST(t.left) + t.operator + flattenAST(t.right) + (t.mods || "") + ")";
 	    if ((t.label) && (t.operator == "d")){ retval += "[" + t.label + "]"; }
 	    break;
 	default:
@@ -506,31 +539,35 @@ function buildCommand(chunks, asts, evalResults){
     // flatten fully evaluated ASTs into strings and splice into chunks
     for (var i = asts.length - 1; i >= 0; i--){
 	if ((!asts[i].baseValid) && (asts[i].type != "number") && (asts[i].type != "string")){ continue; }
-/////
-//
-	//if (asts[i] has unevaluated labels) and (unevalRefs.length>0): continue
-//
-/////
+	if ((unevalRefs.length > 0) & (hasUnevaluatedLabels(asts[i]))){ continue; }
 	chunks.splice(i, 2, (chunks[i] || "") + astToInline(asts.splice(i, 1)[0]) + (chunks[i + 1] || ""));
     }
 
     if (evalReqs.length > 0){
 	// need to submit some expressions to the base evaluator; recurse via sendChat callback
+	var cmd = evalReqs.map(astToInline).join(" ");
+	var callback = function(msg){
+	    var evalResults = [];
+	    for (var i = 0; i < evalReqs.length; i++){
+		evalResults.push([evalReqs[i], msg.inlinerolls[i].total]);
+	    }
+	    buildCommand(chunks, asts, evalResults);
+	};
 /////
 //
-	//recurse via sendChat callback
-	return "[[<need to recurse>]]";
+	//sendChat(speakingAs, cmd, callback);
+	return "<recursing with command "+cmd+">";
 //
 /////
     }
     if (asts.length > 0){
 	// need to finish evaluating some ASTs; recurse directly
-	return buildCommand(chunks, asts, {})
+	return buildCommand(chunks, asts, [])
     }
     // if we got here, we're done evaluating everything; submit results via sendChat
 /////
 //
-    //submit result to sendChat
+    //sendChat(speakingAs, chunks.join(""));
     return chunks.join("[[<incomplete>>]]");
 //
 /////
@@ -548,7 +585,7 @@ function processInput(){
 	asts.push(parseExpression(s, '`'));
     }
     chunks.push(s.s);
-    var output = buildCommand(chunks,asts,{});
+    var output = buildCommand(chunks, asts, []);
     outBox.value = output;
 }
 //--></script>
