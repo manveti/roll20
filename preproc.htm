@@ -1,6 +1,10 @@
 <html>
 <body>
 <script language="javascript"><!--
+var randomInteger = randomInteger || function(x){
+    return Math.floor(Math.random() * x) + 1;
+};
+
 BINARY_PRECEDENCE = {
     '?': 1, ':': 2,
     '||': 3, '&&': 4,
@@ -14,6 +18,38 @@ BINARY_PRECEDENCE = {
     't': 98, 'd': 99
 };
 UNARY_PRECEDENCE = {'!': 13, '~': 13, '-': 13};
+
+BINARY_FUNCTIONS = {
+    '||':	function(x, y){ return x || y; },
+    '&&':	function(x, y){ return x && y; },
+    '|':	function(x, y){ return x | y; },
+    '^':	function(x, y){ return x ^ y; },
+    '&':	function(x, y){ return x & y; },
+    '=':	function(x, y){ return x == y; },
+    '!=':	function(x, y){ return x != y; },
+    '>=':	function(x, y){ return x >= y; },
+    '>':	function(x, y){ return x > y; },
+    '<':	function(x, y){ return x < y; },
+    '<=':	function(x, y){ return x <= y; },
+    '<<':	function(x, y){ return x << y; },
+    '>>':	function(x, y){ return x >> y; },
+    '+':	function(x, y){ return x + y; },
+    '-':	function(x, y){ return x - y; },
+    '*':	function(x, y){ return x * y; },
+    '/':	function(x, y){ return x / y; },
+    '%':	function(x, y){ return x % y; },
+    '**':	Math.pow,
+    'd':	function(x, y){
+		    var retval = 0;
+		    for (var i = 0; i < x; i++){ retval += randomInteger(y); }
+		    return retval;
+		}
+};
+UNARY_FUNCTIONS = {
+    '!':	function(x){ return !x; },
+    '~':	function(x){ return ~x; },
+    '-':	function(x){ return -x; }
+};
 
 CLOSERS = {'(': ")", '{': "}"};
 
@@ -36,9 +72,9 @@ function getToken(s){
     if (m){ return retVal("number", m); }
     m = s.match(/^['"]/);
     if (m){ return retVal("quote", m); }
-    m = s.match(/^((\|\|)|(&&)|(!=)|(>=)|(<=)|(<<)|(>>)|(\*\*)|[?:|^&=><%!~td])/);
+    m = s.match(/^((\|\|)|(&&)|(!=)|(>=)|(<=)|(<<)|(>>)|(\*\*)|[?:|^&=><%!~])/);
     if (m){ return retVal("extoperator", m); }
-    m = s.match(/^[-+*/]/);
+    m = s.match(/^[-+*/td]/);
     if (m){ return retVal("baseoperator", m); }
     m = s.match(/^\[([^\]]+)\]/);
     if (m){ return retVal("label", m); }
@@ -126,7 +162,7 @@ function parseExpression(s, until){
 	}
 	switch (s.tok.type){
 	case "number":
-	    operands.push({'type': "number", 'datatype': "number", 'value': s.tok.text});
+	    operands.push({'type': "number", 'datatype': "number", 'value': parseFloat(s.tok.text)});
 	    return;
 	case "variable":
 	    operands.push({'type': "variable", 'value': s.tok.match[1]});
@@ -227,66 +263,291 @@ function parseExpression(s, until){
     return operands.pop();
 }
 
-function printTreeHelper(t){
-    switch(t.type){
-    case "number":
-    case "rollspec":
-	return t.value;
-    case "variable":
-	if (typeof(t.value) == typeof("")){
-/////
-//
-	    //evaluate node with label=t.value
-	    //return result of node evaluation
-	    return "${" + t.value + "}";
-//
-/////
-	}
-/////
-//
-	//evaluate t.value as string
-	//evaluate node with label=result of t.value evaluation
-	//return result of node evaluation
-	return "${" + printTree(t.value) + "}";
-//
-/////
-    case "tablename":
-	if (typeof(t.value) == typeof("")){
-	    return "[" + t.value + "]";
-	}
-/////
-//
-	//evaluate t.value as string
-	//return "[" + result of evaluation + "]"
-	return "[" + printTree(t.value) + "]";
-//
-/////
-    case "string":
-	return '"' + t.value.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
-    case "unop":
-    case "unopex":
-	return "(" + t.operator + printTree(t.operand) + ")";
-    case "binop":
-    case "binopex":
-	return "(" + printTree(t.left) + " " + t.operator + " " + printTree(t.right) + (t.mods || "") + ")";
-    case "cond":
-	return "(" + printTree(t.cond) + " ? " + printTree(t.left) + " : " + printTree(t.right) + ")";
-    default:
-	return "unknown type: " + t.type;
-    }
-}
+function buildCommand(chunks, asts, evalResults){
+    var labels = {}, references = {}, unevalRefs = [], evalReqs = [];
 
-function printTree(t){
-    var retval = printTreeHelper(t);
-    if (t.label){ retval += "[" + t.label + "]"; }
-    return retval;
+/////
+//
+    //substitute in evalResults (delete t.mods in addition to other eval considerations)
+//
+/////
+
+    function lazyEval(t, labels, references, unevalRefs, evalReqs, force){
+	var x, y;
+
+	if (t.label){ labels[t.label] = t; }
+
+	switch(t.type){
+	case "number":
+	case "rollspec":
+	    t.baseValid = true;
+	    // fall through
+	case "string":
+	    return t;
+	case "tablename":
+	    if (typeof(t.value) != typeof("")){
+		x = lazyEval(t.value, labels, references, unevalRefs, evalReqs, true);
+		if (typeof(x) == typeof("")){ return x; } // error
+		if (x.type == "number"){
+		    // number node; coerce to string
+		    x.value = "" + x.value;
+		    x.type = "string"
+		}
+		if (x.type != "string"){
+		    // unable to fully evaluate table name
+		    if (t.baseValid){ t.baseValid = false; }
+		    unevalRefs.push(t.value);
+		    return t;
+		}
+		// successfully evaluated table name
+		t.value = x.value;
+	    }
+	    // if we got here, t.value is the name of a rollable table
+	    t.baseValid = true;
+	    return t;
+	case "unop":
+	case "unopex":
+	    force = force || (t.type != "unop");
+	    x = lazyEval(t.operand, labels, references, unevalRefs, evalReqs, force);
+	    if (typeof(x) == typeof("")){ return x; } // error
+	    if (force){
+		if (x.type != "number"){
+		    // unable to fully evaluate operand
+		    if (t.baseValid){ t.baseValid = false; }
+		    return t;
+		}
+		// successfully evaluated operand
+		t.type = "number";
+		t.datatype = "number";
+		t.value = UNARY_FUNCTIONS[t.operator](x.value);
+		delete t.operator;
+		if (t.operand.label){ labels[t.operand.label] = x; }
+		delete t.operand;
+		t.baseValid = true;
+	    }
+	    else{ t.baseValid = x.baseValid; }
+	    return t;
+	case "binop":
+	case "binopex":
+	    force = force || (t.type != "binop") || (t.left.datatype == "string") || (t.right.datatype == "string");
+	    x = lazyEval(t.left, labels, references, unevalRefs, evalReqs, force);
+	    if (typeof(x) == typeof("")){ return x; } // error
+	    y = lazyEval(t.right, labels, references, unevalRefs, evalReqs, force);
+	    if (typeof(y) == typeof("")){ return y; } // error
+	    if (force){
+		if ((x.type != "number") && (x.type != "string")){
+		    // unable to fully evaluate left operand
+		    if (t.baseValid){ t.baseValid = false; }
+		    return t;
+		}
+		if ((y.type != "number") && (y.type != "string") && (y.type != "rollspec") && (y.type != "tablename")){
+		    // unable to fully evaluate right operand
+		    if (t.baseValid){ t.baseValid = false; }
+		    return t;
+		}
+		if ((y.type == "rollspec") && (t.operator != "d")){
+		    return "Rollspec operand is only compatible with 'd' operator";
+		}
+		if ((t.operator == "t") && (y.type != "tablename")){
+		    return "'t' operator requires tablename operand";
+		}
+		// successfully evaluated both operands
+		if ((t.operator == "t") || ((t.operator == "d") && (t.mods))){
+		    // operator is rollable table or is roll with mods; must submit to base system for evaluation
+		    evalReqs.push(t);
+		    return t;
+		}
+		t.value = BINARY_FUNCTIONS[t.operator](x.value, y.value);
+		delete t.operator;
+		if (t.left.label){ labels[t.left.label] = x; }
+		delete t.left;
+		if (t.right.label){ labels[t.right.label] = y; }
+		delete t.right;
+		t.type = (typeof(t.value) == typeof("") ? "string" : "number");
+		t.datatype = t.type;
+		t.baseValid = (t.datatype == "number");
+	    }
+	    else if ((x.datatype == "number") && (y.datatype == "number")){
+		t.datatype = "number";
+		t.baseValid = true;
+	    }
+	    return t;
+	case "cond":
+	    x = lazyEval(t.cond, labels, references, unevalRefs, evalReqs, true);
+	    if (typeof(x) == typeof("")){ return x; } // error
+	    if ((x.type != "number") && (x.type != "string")){
+		// unable to fully evaluate condition
+		t.baseValid = false;
+		return t;
+	    }
+	    // successfully evaluated condition; replace t with t.left or t.right as appropriate
+	    y = (x.value ? t.left : t.right);
+	    if (t.cond.label){ labels[t.cond.label] = x; }
+	    delete t.cond;
+	    delete t.left;
+	    delete t.right;
+	    for (var k in y){
+		t[k] = y[k];
+	    }
+	    return lazyEval(t, labels, references, unevalRefs, evalReqs, force);
+	case "variable":
+	    if (typeof(t.value) != typeof("")){
+		x = lazyEval(t.value, labels, references, unevalRefs, evalReqs, true);
+		if (typeof(x) == typeof("")){ return x; } // error
+		if (x.type == "number"){
+		    // number node; coerce to string
+		    x.value = "" + x.value;
+		    x.type = "string"
+		}
+		if (x.type != "string"){
+		    // unable to fully evaluate variable name
+		    if (t.baseValid){ t.baseValid = false; }
+		    unevalRefs.push(t.value);
+		    return t;
+		}
+		// successfully evaluated variable name
+		t.value = x.value;
+	    }
+	    // if we got here, t.value is the name of a variable
+	    if ((labels[t.value]) && ((labels[t.value].type == "string") || (labels[t.value].type == "number"))){
+		// variable exists and has been fully evaluated
+		t.type = labels[t.value].type;
+		t.datatype = labels[t.value].datatype;
+		t.baseValid = labels[t.value].baseValid;
+		t.value = labels[t.value].value;
+	    }
+	    else{
+		// variable not yet defined or not yet fully evaluated
+		if (!references[t.value]){ references[t.value] = []; }
+		references[t.value].push(t);
+		if (t.baseValid){ t.baseValid = false; }
+	    }
+	    return t;
+	default:
+	    return "Unknown node type: " + t.type;
+	}
+    }
+
+    // traverse ASTs, collapsing as much as possible
+    for (var i = 0; i < asts.length; i++){
+	if (asts[i].baseValid){ continue; } // can be handled by base expression evaluator
+	var err = lazyEval(asts[i], labels, references, unevalRefs, evalReqs, false);
+	if (typeof(err) == typeof("")){ return err; }
+    }
+
+    // do variable substitution; repeat until we don't make any more progress
+    var doSubstitution = true;
+    while (doSubstitution){
+	doSubstitution = false;
+	// substitute in values for variables for which we already have names
+	for (var label in references){
+	    if (!labels[label]){
+		return "Variable '" + label + "' not defined";
+	    }
+	    if ((labels[label].type != "string") && (labels[label].type != "number")){
+		// variable exists but not yet evaluated; try to evaluate
+		var err = lazyEval(labels[label], labels, references, unevalRefs, evalReqs, true);
+		if (typeof(err) == typeof("")){ return err; }
+	    }
+	    if ((labels[label].type == "string") || (labels[label].type == "number")){
+		// variable fully evaluated; substitute it in
+		for (var i = 0; i < references[label].length; i++){
+		    references[label][i].type = labels[label].type;
+		    references[label][i].datatype = labels[label].datatype;
+		    references[label][i].value = labels[label].value;
+		    references[label][i].baseValid = labels[label].baseValid;
+		}
+		delete references[label];
+		doSubstitution = true;
+	    }
+	}
+	// try to get names for variables and tables with unevaluated names
+	var newUneval = [];
+	while (unevalRefs.length > 0){
+	    var r = lazyEval(unevalRefs.shift(), labels, references, unevalRefs, evalReqs, true);
+	    if (typeof(r) == typeof("")){ return err; }
+	    if ((r.type == "string") || (r.type == "number")){ doSubstitution = true; }
+	    else{ newUneval.push(r); }
+	}
+	unevalRefs = newUneval;
+    }
+
+    function flattenAST(t){
+	var retval;
+
+	switch(t.type){
+	case "number":
+	case "rollspec":
+	    retval = t.value;
+	    break;
+	case "tablename":
+	    retval = "[" + t.value + "]";
+	    break;
+	case "unop":
+	    retval = "(" + t.operator + flattenAST(t.operand) + ")";
+	    break;
+	case "binop":
+	    retval = "(" + flattenAST(t.left) + t.operator + flattenAST(t.right) + ")";
+	    if ((t.label) && (t.operator == "d")){ retval += "[" + t.label + "]"; }
+	    break;
+	default:
+	    return "Unknown node type: " + t.type;
+	}
+
+	return retval;
+    }
+
+    function astToInline(t){
+	if (t.type == "string"){ return t.value; }
+	return "[[" + flattenAST(t) + "]]";
+    }
+
+    // flatten fully evaluated ASTs into strings and splice into chunks
+    for (var i = asts.length - 1; i >= 0; i--){
+	if (!asts[i].baseValid){ continue; }
+/////
+//
+	//if (asts[i] has unevaluated labels) and (unevalRefs.length>0): continue
+//
+/////
+	chunks.splice(i, 2, (chunks[i] || "") + astToInline(asts.splice(i, 1)[0]) + (chunks[i + 1] || ""));
+    }
+
+    if (evalReqs.length > 0){
+	// need to submit some expressions to the base evaluator; recurse via sendChat callback
+/////
+//
+	//recurse via sendChat callback
+	return "[[<need to recurse>]]";
+//
+/////
+    }
+    if (asts.length > 0){
+	// need to finish evaluating some ASTs; recurse directly
+	return buildCommand(chunks, asts, {})
+    }
+    // if we got here, we're done evaluating everything; submit results via sendChat
+/////
+//
+    //submit result to sendChat
+    return chunks.join("[[<incomplete>>]]");
+//
+/////
 }
 
 function processInput(){
     var inBox = document.getElementById("inbox");
     var outBox = document.getElementById("outbox");
-    var expTree = parseExpression(inBox.value);
-    var output = (expTree ? (typeof(expTree) == typeof("") ? expTree : printTree(expTree)) : "n/a");
+    var chunks = [];
+    var asts = [];
+    var s = {'s': inBox.value};
+    for (var i = s.s.indexOf('`'); i >= 0; i = s.s.indexOf('`')){
+	chunks.push(s.s.substring(0, i));
+	s.s = s.s.substring(i + 1);
+	asts.push(parseExpression(s, '`'));
+    }
+    chunks.push(s.s);
+    var output = buildCommand(chunks,asts,{});
     outBox.value = output;
 }
 //--></script>
