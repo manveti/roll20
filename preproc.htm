@@ -549,7 +549,7 @@ function buildCommand(chunks, asts, evalResults){
 	var callback = function(msg){
 	    var evalResults = [];
 	    for (var i = 0; i < evalReqs.length; i++){
-		evalResults.push([evalReqs[i], msg.inlinerolls[i].total]);
+		evalResults.push([evalReqs[i], msg.inlinerolls[i].results.total]);
 	    }
 	    buildCommand(chunks, asts, evalResults);
 	};
