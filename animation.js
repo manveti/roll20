@@ -155,7 +155,7 @@ var Animation = Animation || {
 	if (who){
 	    who = "/w " + who.split(" ", 1)[0] + " ";
 	}
-	sendChat(from, who + s.replace(/</g, "<").replace(/>/g, ">").replace(/\n/g, "<br>"));
+	sendChat(from, who + s.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>"));
     },
 
     showHelp: function(who, cmd, subCmd){
