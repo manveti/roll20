@@ -780,9 +780,9 @@ var Animation = Animation || {
 		}
 	    }
 	    if (typeof(x) == typeof("")){ x = parseInt(x); }
-	    else{ x = page.get('width') * 35; }
+	    else if (typeof(x) != typeof(0)){ x = page.get('width') * 35; }
 	    if (typeof(y) == typeof("")){ y = parseInt(y); }
-	    else{ y = page.get('height') * 35; }
+	    else if (typeof(y) != typeof(0)){ y = page.get('height') * 35; }
 	    var rotation = parseInt(args['rotation'] || "0");
 	    var timeScale = parseFloat(args['timeScale'] || "1");
 	    var xScale = parseFloat(args['xScale'] || "1");
