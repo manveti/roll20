@@ -147,7 +147,7 @@ var Animation = Animation || {
 
 	var handlerFunc = function(){ Animation.updateJob(tok.id); }
 	if (!state.Animation.running[tok.id].cancel){
-	    Animation.jobTimers[tok.id] = setTimeout(handlerFunc, job.frames[0].duration * timeScale);
+	    Animation.jobTimers[tok.id] = setTimeout(handlerFunc, job.frames[0].duration);
 	}
     },
 
