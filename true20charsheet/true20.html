@@ -1,0 +1,2423 @@
+<!--
+TODO:
+maybe make it easier to handle smashing blow (i.e. let melee to-hit select between dex and floor(str/2))
+maybe add power bonus, power check button, and power dc for innate powers; also maybe track fatigue save dc
+-->
+
+<div class="t20-sheet">
+    <div class="t20-sheet-left">
+        <table class="sheet-section section-description">
+            <tr><td class="section-header">Description</td></tr>
+            <tr>
+                <td>
+                    <table>
+                        <tr>
+                            <td>
+                                Name
+                                <input type="text" name="attr_character_name" title="character_name" style="min-width: 200px;">
+                                Player
+                                <input type="text" name="attr_player_name" title="player_name" style="min-width: 150px;">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Background
+                                <input type="text" name="attr_background" title="background" style="width: 120px;">
+                                Gender
+                                <input type="text" name="attr_gender" title="gender" style="width: 100px;">
+                                Size
+                                <select name="attr_size" title="size" class="input-dropdown-large">
+                                    <option value="4">Colossal</option>
+                                    <option value="3">Gargantuan</option>
+                                    <option value="2">Huge</option>
+                                    <option value="1">Large</option>
+                                    <option selected value="0">Medium</option>
+                                    <option value="-1">Small</option>
+                                    <option value="-2">Tiny</option>
+                                    <option value="-3">Diminutive</option>
+                                    <option value="-4">Fine</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                Age
+                                <input type="text" name="attr_age" title="age" class="input-num4">
+                                Weight
+                                <input type="text" name="attr_weight" title="weight" style="width: 50px;">
+                                Height
+                                <input type="text" name="attr_height" title="height" style="width: 37px;">
+                                Skin
+                                <input type="text" name="attr_skin" title="skin" style="width: 48px;">
+                                Eyes
+                                <input type="text" name="attr_eyes" title="eyes" style="width: 48px;">
+                                Hair
+                                <input type="text" name="attr_hair" title="hair" style="width: 48px;">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-abilities">
+            <tr><td class="section-header">Abilities</td></tr>
+            <tr>
+                <td>
+                    <table class="stat-table">
+                        <tr>
+                            <th>Ability</th>
+                            <th>Total</th>
+                            <th>Base</th>
+                            <th>Equip</th>
+                            <th>Misc</th>
+                            <th>Temp</th>
+                            <th>Penalty</th>
+                            <th>Roll</th>
+                        </tr>
+                        <tr>
+                            <td>Strength</td>
+                            <td><input type="text" name="attr_str" title="str" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_str_base" title="str_base" value="0" min="-5" class="input-spin2"></td>
+                            <td><input type="number" name="attr_str_equip" title="str_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_str_misc" title="str_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_str_temp" title="str_temp" value="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_fatigue_penalty" title="fatigue_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                            <td>
+                                <input type="hidden" name="attr_str_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Strength Check}} {{Result=[[1d20cf<0cs>99 + @{str}[str] - @{shaken_penalty}[shaken] ]]}}">
+                                <button type="roll" name="roll_str_check" title="str_check" value="@{str_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Dexterity</td>
+                            <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_dex_base" title="dex_base" value="0" min="-5" class="input-spin2"></td>
+                            <td><input type="number" name="attr_dex_equip" title="dex_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_dex_misc" title="dex_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_dex_temp" title="dex_temp" value="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_fatigue_penalty" title="fatigue_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                            <td>
+                                <input type="hidden" name="attr_dex_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Dexterity Check}} {{Result=[[1d20cf<0cs>99 + @{dex}[dex] - @{shaken_penalty}[shaken] ]]}}">
+                                <button type="roll" name="roll_dex_check" title="dex_check" value="@{dex_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Constitution</td>
+                            <td><input type="text" name="attr_con" title="con" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_con_base" title="con_base" value="0" min="-5" class="input-spin2"></td>
+                            <td><input type="number" name="attr_con_equip" title="con_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_con_misc" title="con_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_con_temp" title="con_temp" value="0" class="input-spin2"></td>
+                            <td></td>
+                            <td>
+                                <input type="hidden" name="attr_con_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Constitution Check}} {{Result=[[1d20cf<0cs>99 + @{con}[con] ]]}}">
+                                <button type="roll" name="roll_con_check" title="con_check" value="@{con_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Intelligence</td>
+                            <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_int_base" title="int_base" value="0" min="-5" class="input-spin2"></td>
+                            <td><input type="number" name="attr_int_equip" title="int_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_int_misc" title="int_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_int_temp" title="int_temp" value="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_fear_penalty" title="fear_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                            <td>
+                                <input type="hidden" name="attr_int_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Intelligence Check}} {{Result=[[1d20cf<0cs>99 + @{int}[int] - @{shaken_penalty}[shaken] ]]}}">
+                                <button type="roll" name="roll_int_check" title="int_check" value="@{int_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Wisdom</td>
+                            <td><input type="text" name="attr_wis" title="wis" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_wis_base" title="wis_base" value="0" min="-5" class="input-spin2"></td>
+                            <td><input type="number" name="attr_wis_equip" title="wis_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_wis_misc" title="wis_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_wis_temp" title="wis_temp" value="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_fear_penalty" title="fear_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                            <td>
+                                <input type="hidden" name="attr_wis_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Wisdom Check}} {{Result=[[1d20cf<0cs>99 + @{wis}[wis] - @{shaken_penalty}[shaken] ]]}}">
+                                <button type="roll" name="roll_wis_check" title="wis_check" value="@{wis_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Charisma</td>
+                            <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_cha_base" title="cha_base" value="0" min="-5" class="input-spin2"></td>
+                            <td><input type="number" name="attr_cha_equip" title="cha_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_cha_misc" title="cha_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_cha_temp" title="cha_temp" value="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_fear_penalty" title="fear_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                            <td>
+                                <input type="hidden" name="attr_cha_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Charisma Check}} {{Result=[[1d20cf<0cs>99 + @{cha}[cha] - @{shaken_penalty}[shaken] ]]}}">
+                                <button type="roll" name="roll_cha_check" title="cha_check" value="@{cha_macro}"></button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-saves">
+            <tr><td class="section-header">Saves</td></tr>
+            <tr>
+                <td>
+                    <table class="stat-table">
+                        <tr>
+                            <th>Save</th>
+                            <th>Total</th>
+                            <th>Base</th>
+                            <th>Abil</th>
+                            <th>Equip</th>
+                            <th>Misc</th>
+                            <th>Temp</th>
+                            <th>Notes</th>
+                            <th>Roll</th>
+                        </tr>
+                        <tr>
+                            <td>Fortitude</td>
+                            <td><input type="text" name="attr_fort" title="fort" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_fort_base" title="fort_base" value="0" min="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_con" title="con" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_fort_equip" title="fort_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_fort_misc" title="fort_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_fort_temp" title="fort_temp" value="0" class="input-spin2"></td>
+                            <td><textarea name="attr_fort_note" title="fort_note" placeholder="Note" rows="1" cols="16"></textarea></td>
+                            <td>
+                                <input type="hidden" name="attr_fort_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Fortitude Save}} {{Result=[[1d20 + @{fort}[fort] - @{shaken_penalty}[shaken] ]]}} {{notes=@{fort_note} }}">
+                                <button type="roll" name="roll_fort_save" title="fort_save" value="@{fort_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Reflex</td>
+                            <td><input type="text" name="attr_ref" title="ref" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_ref_base" title="ref_base" value="0" min="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_ref_equip" title="ref_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_ref_misc" title="ref_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_ref_temp" title="ref_temp" value="0" class="input-spin2"></td>
+                            <td><textarea name="attr_ref_note" title="ref_note" placeholder="Note" rows="1" cols="16"></textarea></td>
+                            <td>
+                                <input type="hidden" name="attr_ref_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Reflex Save}} {{Result=[[1d20 + @{ref}[ref] - @{shaken_penalty}[shaken] ]]}} {{notes=@{ref_note} }}">
+                                <button type="roll" name="roll_ref_save" title="ref_save" value="@{ref_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Will</td>
+                            <td><input type="text" name="attr_will" title="will" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_will_base" title="will_base" value="0" min="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_wis" title="wis" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_will_equip" title="will_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_will_misc" title="will_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_will_temp" title="will_temp" value="0" class="input-spin2"></td>
+                            <td><textarea name="attr_will_note" title="will_note" placeholder="Note" rows="1" cols="16"></textarea></td>
+                            <td>
+                                <input type="hidden" name="attr_will_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Will Save}} {{Result=[[1d20 + @{will}[will] - @{shaken_penalty}[shaken] ]]}} {{notes=@{will_note} }}">
+                                <button type="roll" name="roll_will_save" title="will_save" value="@{will_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Toughness</td>
+                            <td><input type="text" name="attr_toughness" title="toughness" value="0" readonly="readonly" class="input-num3"></td>
+                            <td>
+                                <input type="hidden" name="attr_size_tough" value="0">
+                                <input type="text" name="attr_toughness_base" title="toughness_base (= armor_bonus + size_tough)" value="0" readonly="readonly" class="input-num3">
+                            </td>
+                            <td><input type="text" name="attr_con" title="con" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_toughness_equip" title="toughness_equip" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_toughness_misc" title="toughness_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_toughness_temp" title="toughness_temp" value="0" class="input-spin2"></td>
+                            <td><textarea name="attr_toughness_note" title="toughness_note" placeholder="Note" rows="1" cols="16"></textarea></td>
+                            <td>
+                                <input type="hidden" name="attr_toughness_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Toughness Save}} {{Result=[[1d20 + @{toughness}[toughness] - @{hurt}[hurt] - @{wounded}[wounded] ]]}} {{notes=@{toughness_note} }}">
+                                <button type="roll" name="roll_toughness_save" title="toughness_save" value="@{toughness_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Sanity</td>
+                            <td><input type="text" name="attr_sanity" title="sanity" value="0" readonly="readonly" class="input-num3"></td>
+                            <td><input type="number" name="attr_sanity_base" title="sanity_base" value="0" min="0" class="input-spin2"></td>
+                            <td colspan="2">
+                                <input type="hidden" name="attr_sanity_abil" value="0">
+                                <select name="attr_sanity_ability" title="sanity_abil" class="input-dropdown-small">
+                                    <option value="wis">Wis</option>
+                                    <option value="cha">Cha</option>
+                                </select>
+                            </td>
+                            <td><input type="number" name="attr_sanity_misc" title="sanity_misc" value="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_sanity_temp" title="sanity_temp" value="0" class="input-spin2"></td>
+                            <td><textarea name="attr_sanity_note" title="sanity_note" placeholder="Note" rows="1" cols="16"></textarea></td>
+                            <td>
+                                <input type="hidden" name="attr_sanity_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Terror Save}} {{Result=[[1d20 + @{sanity}[sanity] - {@{startled}[startled], @{scared}[scared]}kh1 - @{damage_penalty}[damaged] ]]}} {{notes=@{sanity_note} }}">
+                                <button type="roll" name="roll_sanity_save" title="sanity_save" value="@{sanity_macro}"></button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table width="100%">
+                        <tr>
+                            <td width="50%">
+                                Nonlethal Toughness
+                                <input type="hidden" name="attr_toughness_nl_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Toughness Save}} {{subtags2=(nonlethal)}} {{Result=[[1d20 + @{toughness}[toughness] - @{bruised}[bruised] - @{dazed}[dazed] ]]}} {{notes=@{toughness_note} }}">
+                                <button type="roll" name="roll_toughness_save_nl" title="toughness_save_nl" value="@{toughness_nl_macro}"></button>
+                            </td>
+                            <td width="50%">
+                                Fear
+                                <input type="hidden" name="attr_fear_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Fear Save}} {{Result=[[1d20 + @{sanity}[sanity] - @{startled}[startled] - @{spooked}[spooked] - @{damage_penalty}[damaged] ]]}} {{notes=@{sanity_note} }}">
+                                <button type="roll" name="roll_fear_save" title="fear_save" value="@{fear_macro}"></button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-damage">
+            <tr><td class="section-header">Damage Track</td></tr>
+            <tr>
+                <td>
+                    <table class="damage-table">
+                        <tr>
+                            <th>0</th>
+                            <th>5+</th>
+                            <th>10+</th>
+                            <th>15+</th>
+                            <th>20+</th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span title="1/min, automatic">Bruised</span><br>
+                                <input type="number" name="attr_bruised" title="bruised" value="0" min="0" class="input-spin3">
+                            </td>
+                            <td>
+                                <span title="1/min, automatic">Dazed</span><br>
+                                <input type="number" name="attr_dazed" title="dazed" value="0" min="0" class="input-spin3">
+                            </td>
+                            <td>
+                                <span title="1/min">Staggered</span><br>
+                                <input type="checkbox" name="attr_staggered" title="staggered" value="1">
+                            </td>
+                            <td>
+                                <span title="1/min">Unconscious</span><br>
+                                <input type="checkbox" name="attr_unconscious" title="unconscious" value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="hidden" name="attr_prev_hurt" value="0">
+                                <input type="number" name="attr_hurt" title="hurt" value="0" min="0" class="input-spin3"><br>
+                                <span title="1/hour, automatic">Hurt</span>
+                            </td>
+                            <td>
+                                <input type="hidden" name="attr_prev_wounded" value="0">
+                                <input type="number" name="attr_wounded" title="wounded" value="0" min="0" class="input-spin3"><br>
+                                <span title="1/hour">Wounded</span>
+                            </td>
+                            <td>
+                                <input type="hidden" name="attr_prev_disabled" value="0">
+                                <input type="checkbox" name="attr_disabled" title="disabled" value="1"><br>
+                                <span title="1/day">Disabled</span>
+                            </td>
+                            <td>
+                                <input type="hidden" name="attr_prev_dying" value="0">
+                                <input type="checkbox" name="attr_dying" title="dying" value="1"><br>
+                                <span title="1/round, special">Dying</span>
+                            </td>
+                            <td>
+                                <input type="checkbox" name="attr_dead" title="dead" value="1"><br>
+                                Dead
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" name="attr_shaken_penalty" value="0">
+
+        <table class="sheet-section section-sanity">
+            <tr><td class="section-header">Sanity Track</td></tr>
+            <tr>
+                <td>
+                    <table class="damage-table">
+                        <tr>
+                            <th>0</th>
+                            <th>5+</th>
+                            <th>10+</th>
+                            <th>15+</th>
+                            <th>20+</th>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span title="1/min, automatic">Startled</span><br>
+                                <input type="number" name="attr_startled" title="startled" value="0" min="0" class="input-spin3">
+                            </td>
+                            <td>
+                                <span title="1/min, automatic">Spooked</span><br>
+                                <input type="checkbox" name="attr_spooked" title="spooked" value="1">
+                            </td>
+                            <td>
+                                <span title="1/min">Frightened</span><br>
+                                <input type="checkbox" name="attr_frightened" title="frightened" value="1">
+                            </td>
+                            <td>
+                                <span title="1/min">Terrified</span><br>
+                                <input type="checkbox" name="attr_terrified" title="terrified" value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="hidden" name="attr_prev_scared" value="0">
+                                <input type="number" name="attr_scared" title="scared" value="0" min="0" class="input-spin3"><br>
+                                <span title="1/hour, automatic">Scared</span>
+                            </td>
+                            <td>
+                                <input type="hidden" name="attr_prev_confused" value="0">
+                                <input type="checkbox" name="attr_confused" title="confused" value="1"><br>
+                                <span title="1/hour">Confused</span>
+                            </td>
+                            <td>
+                                <input type="hidden" name="attr_prev_unhinged" value="0">
+                                <input type="checkbox" name="attr_unhinged" title="unhinged" value="1"><br>
+                                <span title="1/day">Unhinged</span>
+                            </td>
+                            <td>
+                                <input type="hidden" name="attr_prev_psychotic" value="0">
+                                <input type="checkbox" name="attr_psychotic" title="psychotic" value="1"><br>
+                                <span title="1/week">Psychotic</span>
+                            </td>
+                            <td>
+                                <input type="checkbox" name="attr_insane" title="insane" value="1"><br>
+                                Insane
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" name="attr_damage_penalty" value="0">
+
+        <table class="sheet-section section-fatigue">
+            <tr><td class="section-header">Fatigue Track</td></tr>
+            <tr>
+                <td>
+                    <table class="damage-table">
+                        <tr>
+                            <th>Winded</th>
+                            <th>Fatigued</th>
+                            <th>Exhausted</th>
+                        </tr>
+                        <tr>
+                            <td><input type="checkbox" name="attr_winded" title="winded" value="1"></td>
+                            <td><input type="checkbox" name="attr_fatigued" title="fatigued" value="1"></td>
+                            <td><input type="checkbox" name="attr_exhausted" title="exhausted" value="1"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="t20-sheet-right">
+        <table class="sheet-section section-nature">
+            <tr><td class="section-header">Nature</td></tr>
+            <tr>
+                <td>
+                    <table class="info-table">
+                        <tr>
+                            <td>Virtue</td>
+                            <td><input type="text" name="attr_virtue" title="virtue" style="min-width: 150px;"></td>
+                        </tr>
+                        <tr>
+                            <td>Vice</td>
+                            <td><input type="text" name="attr_vice" title="vice" style="min-width: 150px;"></td>
+                        </tr>
+                        <tr>
+                            <td>Core Ability</td>
+                            <td><input type="text" name="attr_core_ability" title="core_ability" style="min-width: 150px;"></td>
+                        </tr>
+                        <tr>
+                            <td>Conviction</td>
+                            <td>
+                                <input type="number" name="attr_conviction" title="conviction" value="0" min="0" style="width: 50px;">
+                                /
+                                <input type="number" name="attr_conviction_max" title="conviction_max" value="0" min="0" style="width: 50px;">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-roles">
+            <tr><td class="section-header">Roles</td></tr>
+            <tr>
+                <td>
+                    <table class="info-table">
+                        <tr>
+                            <td>Role 1</td>
+                            <td><input type="text" name="attr_role1" title="role1" style="width: 100px;"></td>
+                            <td>Level</td>
+                            <td><input type="number" name="attr_level1" title="level1" value="1" min="1" style="width: 50px;"></td>
+                        </tr>
+                        <tr>
+                            <td>Role 2</td>
+                            <td><input type="text" name="attr_role2" title="role2" style="width: 100px;"></td>
+                            <td>Level</td>
+                            <td><input type="number" name="attr_level2" title="level2" value="0" min="0" style="width: 50px;"></td>
+                        </tr>
+                        <tr>
+                            <td>Role 3</td>
+                            <td><input type="text" name="attr_role3" title="role3" style="width: 100px;"></td>
+                            <td>Level</td>
+                            <td><input type="number" name="attr_level3" title="level3" value="0" min="0" style="width: 50px;"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-combat">
+            <tr><td class="section-header">Combat</td></tr>
+            <tr>
+                <td>
+                    <table>
+                        <tr>
+                            <td>
+                                Initiative
+                                <input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num2">
+                                +
+                                <input type="number" name="attr_initiative_mod" title="initiative_mod" value="0" class="input-spin2">
+                                =
+                                <input type="text" name="attr_initiative" title="initiative" value="0" readonly="readonly"  class="input-num2">
+                                <input type="hidden" name="attr_initiative_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Initiative Roll}} {{Result=[[1d20cf<0cs>99 + @{initiative}[init] - @{shaken_penalty}[shaken] &{tracker}]]}}">
+                                <button type="roll" name="roll_initiative" title="initiative" value="@{initiative_macro}"></button>
+                            </td>
+                            <td>
+                                Speed
+                                <input type="text" name="attr_speed" title="speed" style="width: 40px;">
+                            </td>
+                        </tr>
+                    </table>
+                    <table class="stat-table">
+                        <tr>
+                            <th>Defense</th>
+                            <th>Total</th>
+                            <th>Base</th>
+                            <th>Abil</th>
+                            <th>Size</th>
+                            <th>Misc</th>
+                        </tr>
+                        <tr>
+                            <td>Flat-Footed</td>
+                            <td><input type="text" name="attr_flat_footed" title="flat_footed" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_defense_base" title="defense_base" value="0" readonly="readonly" class="input-num2"></td>
+                            <td></td>
+                            <td><input type="text" name="attr_size_combat" title="size_combat" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="number" name="attr_flat_footed_mod" title="flat_footed_mod" value="0" class="input-spin2"></td>
+                        </tr>
+                        <tr>
+                            <td>Dodge</td>
+                            <td><input type="text" name="attr_dodge" title="dodge" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_defense_base" title="defense_base" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_size_combat" title="size_combat" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="number" name="attr_dodge_mod" title="dodge_mod" value="0" class="input-spin2"></td>
+                        </tr>
+                        <tr>
+                            <td>Parry</td>
+                            <td><input type="text" name="attr_parry" title="parry" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_defense_base" title="defense_base" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_size_combat" title="size_combat" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_str" title="str" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="number" name="attr_parry_mod" title="parry_mod" value="0" class="input-spin2"></td>
+                        </tr>
+                    </table>
+                    Combat Bonus
+                    <input type="number" name="attr_combat_bonus" title="combat_bonus" value="0" class="input-spin2">
+                    <table class="stat-table">
+                        <tr>
+                            <th>Offense</th>
+                            <th>Total</th>
+                            <th>Base</th>
+                            <th>Abil</th>
+                            <th>Size</th>
+                            <th>Misc</th>
+                            <th>Roll</th>
+                        </tr>
+                        <tr>
+                            <td>Melee</td>
+                            <td><input type="text" name="attr_melee" title="melee" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_combat_bonus" title="combat_bonus" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_size_combat" title="size_combat" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="number" name="attr_melee_mod" title="melee_mod" value="0" class="input-spin2"></td>
+                            <td>
+                                <input type="hidden" name="attr_melee_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Melee Attack}} {{Result=[[1d20 + @{melee}[melee] - @{shaken_penalty}[shaken] ]]}}">
+                                <button type="roll" name="roll_melee" title="melee" value="@{melee_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ranged</td>
+                            <td><input type="text" name="attr_ranged" title="ranged" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_combat_bonus" title="combat_bonus" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_size_combat" title="size_combat" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="number" name="attr_ranged_mod" title="ranged_mod" value="0" class="input-spin2"></td>
+                            <td>
+                                <input type="hidden" name="attr_ranged_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Ranged Attack}} {{Result=[[1d20 + @{ranged}[ranged] - @{shaken_penalty}[shaken] ]]}}">
+                                <button type="roll" name="roll_ranged" title="ranged" value="@{ranged_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Grapple</td>
+                            <td><input type="text" name="attr_grapple" title="grapple" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_combat_bonus" title="combat_bonus" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_str" title="str" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_size_grap" title="size_grap" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="number" name="attr_grapple_mod" title="grapple_mod" value="0" class="input-spin2"></td>
+                            <td>
+                                <input type="hidden" name="attr_grapple_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Grapple Check}} {{Result=[[1d20 + @{grapple}[grapple] - @{shaken_penalty}[shaken] ]]}}">
+                                <button type="roll" name="roll_grapple" title="grapple" value="@{grapple_macro}"></button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-feats">
+            <tr><td class="section-header">Feats</td></tr>
+            <tr>
+                <td>
+                    <textarea class="inputbox" rows="7" cols="55" style="width: 97%;" name="attr_feats" title="feats"></textarea>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-powers">
+            <tr><td class="section-header">Supernatural Powers</td></tr>
+            <tr>
+                <td>
+                    <table>
+                        <tr>
+                            <td>
+                                Adept Level
+                                <input type="number" name="attr_adept_level" title="adept_level" value="0" min="0" class="input-spin2">
+                            </td>
+                            <td>
+                                Power Ability
+                                <select name="attr_power_ability" title="power_ability" class="input-dropdown-small">
+                                    <option value="int">Int</option>
+                                    <option value="wis">Wis</option>
+                                    <option value="cha">Cha</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th>Total</th>
+                            <th>Base</th>
+                            <th>Abil</th>
+                            <th>Misc</th>
+                            <th>Roll</th>
+                        </tr>
+                        <tr>
+                            <td>Power Bonus</td>
+                            <td><input type="text" name="attr_power_bonus" title="power_bonus" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_power_ranks" title="power_ranks" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_power_abil" title="power_abil" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="number" name="attr_power_mod" title="power_mod" value="0" class="input-spin2"></td>
+                            <td>
+                                <input type="hidden" name="attr_power_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Power Check}} {{Result=[[1d20cf<0cs>99 + @{power_bonus}[power bonus] - @{shaken_penalty}[shaken] ]]}} {{DC=[[@{power_dc}]]}}">
+                                <button type="roll" name="roll_power_check" title="power_check" value="@{power_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Power DC</td>
+                            <td><input type="text" name="attr_power_dc" title="power_dc" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_power_dc_base" title="power_dc_base" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="text" name="attr_power_abil" title="power_abil" value="0" readonly="readonly" class="input-num2"></td>
+                            <td><input type="number" name="attr_power_dc_mod" title="power_dc_mod" value="0" class="input-spin2"></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                    <textarea class="inputbox" rows="6" cols="55" style="width: 97%;" name="attr_powers" title="powers"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="t20-sheet-bottom sheet-section section-weapons">
+        <tr><td class="section-header">Weapons</td></tr>
+        <tr>
+            <td>
+                <table class="stat-table">
+                    <tr>
+                        <th style="width: 105px;">Weapon</th>
+                        <th style="width: 70px;">Type</th>
+                        <th style="width: 45px;">Base<br>Dmg</th>
+                        <th style="width: 75px;">Critical<br>Threat</th>
+                        <th style="width: 55px;">Crit<br>Dmg</th>
+                        <th style="width: 102px;">Dmg<br>Type</th>
+                        <th style="width: 50px;">Range</th>
+                        <th style="width: 60px;">Damage<br>Abil</th>
+                        <th style="width: 45px;">Extra<br>Attack</th>
+                        <th style="width: 45px;">Extra<br>Damage</th>
+                        <th style="width: 97px;">Notes</th>
+                        <th>Roll</th>
+                    </tr>
+                </table>
+                <fieldset class="repeating_weapons">
+                    <table class="stat-table">
+                        <tr>
+                            <td style="width: 105px;">
+                                <input type="text" name="attr_weap_name" title="repeating_weapons_#_weap_name" style="width: 100%;">
+                            </td>
+                            <td style="width: 70px;">
+                                <select name="attr_weap_type" title="repeating_weapons_#_weap_type" style="width: 70px;">
+                                    <option value="@{melee}">Melee</option>
+                                    <option value="@{ranged}">Ranged</option>
+                                </select>
+                            </td>
+                            <td style="width: 45px;">
+                                <input type="number" name="attr_weap_dmg" title="repeating_weapons_#_weap_dmg" value="0" min="0" class="input-spin2">
+                            </td>
+                            <td style="width: 75px;">
+                                <input type="number" name="attr_weap_crit" title="repeating_weapons_#_weap_crit" value="20" min="1" max="20" class="input-spin2">
+                                - 20
+                            </td>
+                            <td style="width: 55px;">
+                                +<input type="number" name="attr_weap_crit_dmg" title="repeating_weapons_#_weap_crit_dmg" value="3" min="1" class="input-spin2">
+                            </td>
+                            <td style="width: 102px;">
+                                <select name="attr_weap_dmg_type" title="repeating_weapons_#_weap_dmg_type" class="input-dropdown-large">
+                                    <option value="slashing">Slashing</option>
+                                    <option value="piercing">Piercing</option>
+                                    <option value="bludgeoning">Bludgeoning</option>
+                                </select>
+                            </td>
+                            <td style="width: 50px;">
+                                <input type="text" name="attr_weap_range" title="repeating_weapons_#_weap_range" style="width: 100%;">
+                            </td>
+                            <td style="width: 60px;">
+                                <select name="attr_weap_dmg_abil" title="repeating_weapons_#_weap_dmg_abil" class="input-dropdown-small">
+                                    <option value="@{str}">Str</option>
+                                    <option value="@{dex}">Dex</option>
+                                    <option value="0">None</option>
+                                </select>
+                            </td>
+                            <td style="width: 45px;">
+                                <input type="number" name="attr_weap_hit_mod" title="repeating_weapons_#_weap_hit_mod" value="0" class="input-spin2">
+                            </td>
+                            <td style="width: 45px;">
+                                <input type="number" name="attr_weap_dmg_mod" title="repeating_weapons_#_weap_dmg_mod" value="0" class="input-spin2">
+                            </td>
+                            <td style="width: 97px;">
+                                <textarea name="attr_weap_note" title="repeating_weapons_#_weap_note" placeholder="Note" rows="1" cols="10"></textarea>
+                            </td>
+                            <td>
+                                <input type="hidden" name="attr_weap_macro" value="&{template:True20Attack} {{name=@{character_name} }} {{subtags=attacks with a @{weap_name} }} {{attack1=[[1d20cs>@{weap_crit} + @{weap_type}[attack] + @{weap_hit_mod}[weapon] - @{shaken_penalty}[shaken] ]]}} {{critconfirm1=[[1d20cs>@{weap_crit} + @{weap_type}[attack] + @{weap_hit_mod}[weapon] - @{shaken_penalty}[shaken] ]]}} {{damage1=+[[@{weap_dmg}[base] + @{weap_dmg_abil}[abil] + @{weap_dmg_mod}[weapon] ]] @{weap_dmg_type} }} {{critdamage1=+[[@{weap_crit_dmg}]]}} {{notes=@{weap_note} }}">
+                                <button type="roll" name="roll_weap_attack" title="repeating_weapons_#_weap_attack" value="@{weap_macro}"></button>
+                            </td>
+                        </tr>
+                    </table>
+                </fieldset>
+            </td>
+        </tr>
+    </table>
+
+    <table class="t20-sheet-bottom sheet-section section-skills">
+        <tr><td class="section-header">Skills</td></tr>
+        <tr>
+            <td>
+                <table class="stat-table shaded-table">
+                    <tr>
+                        <th>Skill</th>
+                        <th>Total</th>
+                        <th>Ranks</th>
+                        <th>Abil</th>
+                        <th>Armor</th>
+                        <th>Size</th>
+                        <th>Equip</th>
+                        <th>Misc</th>
+                        <th>Temp</th>
+                        <th>Notes</th>
+                        <th>Roll</th>
+                    </tr>
+                    <tr>
+                        <td>*Acrobatics</td>
+                        <td><input type="text" name="attr_skill_acro" title="skill_acro" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_acro_ranks" title="skill_acro_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_check_penalty" title="check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_acro_equip" title="skill_acro_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_acro_misc" title="skill_acro_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_acro_temp" title="skill_acro_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_acro_note" title="skill_acro_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_acro_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Acrobatics Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_acro}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_acro_note} }}">
+                            <button type="roll" name="roll_skill_acro_check" title="skill_acro" value="@{skill_acro_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Bluff</td>
+                        <td><input type="text" name="attr_skill_bluff" title="skill_bluff" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_bluff_ranks" title="skill_bluff_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_bluff_equip" title="skill_bluff_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_bluff_misc" title="skill_bluff_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_bluff_temp" title="skill_bluff_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_bluff_note" title="skill_bluff_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_bluff_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Bluff Check}} {{Result=[[1d20cf<0cs>99 + @{skill_bluff}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_bluff_note} }}">
+                            <button type="roll" name="roll_skill_bluff_check" title="skill_bluff" value="@{skill_bluff_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Climb</td>
+                        <td><input type="text" name="attr_skill_climb" title="skill_climb" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_climb_ranks" title="skill_climb_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_str" title="str" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_check_penalty" title="check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_climb_equip" title="skill_climb_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_climb_misc" title="skill_climb_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_climb_temp" title="skill_climb_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_climb_note" title="skill_climb_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_climb_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Climb Check}} {{Result=[[1d20cf<0cs>99 + @{skill_climb}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_climb_note} }}">
+                            <button type="roll" name="roll_skill_climb_check" title="skill_climb" value="@{skill_climb_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Computers</td>
+                        <td><input type="text" name="attr_skill_comp" title="skill_comp" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_comp_ranks" title="skill_comp_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_comp_equip" title="skill_comp_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_comp_misc" title="skill_comp_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_comp_temp" title="skill_comp_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_comp_note" title="skill_comp_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_comp_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Computers Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_comp}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_comp_note} }}">
+                            <button type="roll" name="roll_skill_comp_check" title="skill_comp" value="@{skill_comp_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Concentration</td>
+                        <td><input type="text" name="attr_skill_conc" title="skill_conc" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_conc_ranks" title="skill_conc_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_wis" title="wis" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_conc_equip" title="skill_conc_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_conc_misc" title="skill_conc_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_conc_temp" title="skill_conc_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_conc_note" title="skill_conc_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_conc_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Concentration Check}} {{Result=[[1d20cf<0cs>99 + @{skill_conc}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_conc_note} }}">
+                            <button type="roll" name="roll_skill_conc_check" title="skill_conc" value="@{skill_conc_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Craft <input type="text" name="attr_skill_craft1_name" title="skill_craft1_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_craft1" title="skill_craft1" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_craft1_ranks" title="skill_craft1_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_craft1_equip" title="skill_craft1_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_craft1_misc" title="skill_craft1_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_craft1_temp" title="skill_craft1_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_craft1_note" title="skill_craft1_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_craft1_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Craft (@{skill_craft1_name}) Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_craft1}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_craft1_note} }}">
+                            <button type="roll" name="roll_skill_craft1_check" title="skill_craft1" value="@{skill_craft1_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Craft <input type="text" name="attr_skill_craft2_name" title="skill_craft2_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_craft2" title="skill_craft2" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_craft2_ranks" title="skill_craft2_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_craft2_equip" title="skill_craft2_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_craft2_misc" title="skill_craft2_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_craft2_temp" title="skill_craft2_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_craft2_note" title="skill_craft2_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_craft2_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Craft (@{skill_craft2_name}) Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_craft2}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_craft2_note} }}">
+                            <button type="roll" name="roll_skill_craft2_check" title="skill_craft2" value="@{skill_craft2_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Craft <input type="text" name="attr_skill_craft3_name" title="skill_craft3_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_craft3" title="skill_craft3" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_craft3_ranks" title="skill_craft3_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_craft3_equip" title="skill_craft3_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_craft3_misc" title="skill_craft3_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_craft3_temp" title="skill_craft3_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_craft3_note" title="skill_craft3_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_craft3_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Craft (@{skill_craft3_name}) Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_craft3}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_craft3_note} }}">
+                            <button type="roll" name="roll_skill_craft3_check" title="skill_craft3" value="@{skill_craft3_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Diplomacy</td>
+                        <td><input type="text" name="attr_skill_diplo" title="skill_diplo" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_diplo_ranks" title="skill_diplo_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_diplo_equip" title="skill_diplo_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_diplo_misc" title="skill_diplo_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_diplo_temp" title="skill_diplo_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_diplo_note" title="skill_diplo_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_diplo_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Diplomacy Check}} {{Result=[[1d20cf<0cs>99 + @{skill_diplo}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_diplo_note} }}">
+                            <button type="roll" name="roll_skill_diplo_check" title="skill_diplo" value="@{skill_diplo_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Disable Device</td>
+                        <td><input type="text" name="attr_skill_disdev" title="skill_disdev" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_disdev_ranks" title="skill_disdev_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_disdev_equip" title="skill_disdev_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_disdev_misc" title="skill_disdev_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_disdev_temp" title="skill_disdev_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_disdev_note" title="skill_disdev_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_disdev_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Disable Device Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_disdev}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_disdev_note} }}">
+                            <button type="roll" name="roll_skill_disdev_check" title="skill_disdev" value="@{skill_disdev_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Disguise</td>
+                        <td><input type="text" name="attr_skill_disguise" title="skill_disguise" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_disguise_ranks" title="skill_disguise_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_disguise_equip" title="skill_disguise_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_disguise_misc" title="skill_disguise_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_disguise_temp" title="skill_disguise_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_disguise_note" title="skill_disguise_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_disguise_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Disguise Check}} {{Result=[[1d20cf<0cs>99 + @{skill_disguise}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_disguise_note} }}">
+                            <button type="roll" name="roll_skill_disguise_check" title="skill_disguise" value="@{skill_disguise_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Drive</td>
+                        <td><input type="text" name="attr_skill_drive" title="skill_drive" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_drive_ranks" title="skill_drive_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_untrained_check_penalty" title="untrained_check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_drive_equip" title="skill_drive_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_drive_misc" title="skill_drive_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_drive_temp" title="skill_drive_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_drive_note" title="skill_drive_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_drive_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Drive Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_drive}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_drive_note} }}">
+                            <button type="roll" name="roll_skill_drive_check" title="skill_drive" value="@{skill_drive_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Escape Artist</td>
+                        <td><input type="text" name="attr_skill_escape" title="skill_escape" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_escape_ranks" title="skill_escape_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_check_penalty" title="check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_escape_equip" title="skill_escape_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_escape_misc" title="skill_escape_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_escape_temp" title="skill_escape_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_escape_note" title="skill_escape_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_escape_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Escape Artist Check}} {{Result=[[1d20cf<0cs>99 + @{skill_escape}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_escape_note} }}">
+                            <button type="roll" name="roll_skill_escape_check" title="skill_escape" value="@{skill_escape_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Gather Information</td>
+                        <td><input type="text" name="attr_skill_ginfo" title="skill_ginfo" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_ginfo_ranks" title="skill_ginfo_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_ginfo_equip" title="skill_ginfo_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_ginfo_misc" title="skill_ginfo_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_ginfo_temp" title="skill_ginfo_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_ginfo_note" title="skill_ginfo_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_ginfo_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Gather Information Check}} {{Result=[[1d20cf<0cs>99 + @{skill_ginfo}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_ginfo_note} }}">
+                            <button type="roll" name="roll_skill_ginfo_check" title="skill_ginfo" value="@{skill_ginfo_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Handle Animal</td>
+                        <td><input type="text" name="attr_skill_hanimal" title="skill_hanimal" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_hanimal_ranks" title="skill_hanimal_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_hanimal_equip" title="skill_hanimal_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_hanimal_misc" title="skill_hanimal_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_hanimal_temp" title="skill_hanimal_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_hanimal_note" title="skill_hanimal_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_hanimal_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Handle Animal Check}} {{Result=[[1d20cf<0cs>99 + @{skill_hanimal}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_hanimal_note} }}">
+                            <button type="roll" name="roll_skill_hanimal_check" title="skill_hanimal" value="@{skill_hanimal_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Intimidate</td>
+                        <td><input type="text" name="attr_skill_intim" title="skill_intim" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_intim_ranks" title="skill_intim_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_intim_equip" title="skill_intim_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_intim_misc" title="skill_intim_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_intim_temp" title="skill_intim_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_intim_note" title="skill_intim_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_intim_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Intimidate Check}} {{Result=[[1d20cf<0cs>99 + @{skill_intim}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_intim_note} }}">
+                            <button type="roll" name="roll_skill_intim_check" title="skill_intim" value="@{skill_intim_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Jump</td>
+                        <td><input type="text" name="attr_skill_jump" title="skill_jump" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_jump_ranks" title="skill_jump_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_str" title="str" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_check_penalty" title="check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_jump_equip" title="skill_jump_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_jump_misc" title="skill_jump_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_jump_temp" title="skill_jump_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_jump_note" title="skill_jump_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_jump_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Jump Check}} {{Result=[[1d20cf<0cs>99 + @{skill_jump}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_jump_note} }}">
+                            <button type="roll" name="roll_skill_jump_check" title="skill_jump" value="@{skill_jump_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Knowledge <input type="text" name="attr_skill_know1_name" title="skill_know1_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_know1" title="skill_know1" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_know1_ranks" title="skill_know1_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_know1_equip" title="skill_know1_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_know1_misc" title="skill_know1_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_know1_temp" title="skill_know1_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_know1_note" title="skill_know1_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_know1_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Knowledge (@{skill_know1_name}) Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_know1}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_know1_note} }}">
+                            <button type="roll" name="roll_skill_know1_check" title="skill_know1" value="@{skill_know1_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Knowledge <input type="text" name="attr_skill_know2_name" title="skill_know2_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_know2" title="skill_know2" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_know2_ranks" title="skill_know2_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_know2_equip" title="skill_know2_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_know2_misc" title="skill_know2_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_know2_temp" title="skill_know2_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_know2_note" title="skill_know2_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_know2_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Knowledge (@{skill_know2_name}) Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_know2}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_know2_note} }}">
+                            <button type="roll" name="roll_skill_know2_check" title="skill_know2" value="@{skill_know2_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Knowledge <input type="text" name="attr_skill_know3_name" title="skill_know3_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_know3" title="skill_know3" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_know3_ranks" title="skill_know3_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_know3_equip" title="skill_know3_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_know3_misc" title="skill_know3_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_know3_temp" title="skill_know3_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_know3_note" title="skill_know3_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_know3_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Knowledge (@{skill_know3_name}) Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_know3}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_know3_note} }}">
+                            <button type="roll" name="roll_skill_know3_check" title="skill_know3" value="@{skill_know3_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Medicine</td>
+                        <td><input type="text" name="attr_skill_med" title="skill_med" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_med_ranks" title="skill_med_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_wis" title="wis" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_med_equip" title="skill_med_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_med_misc" title="skill_med_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_med_temp" title="skill_med_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_med_note" title="skill_med_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_med_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Medicine Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_med}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_med_note} }}">
+                            <button type="roll" name="roll_skill_med_check" title="skill_med" value="@{skill_med_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Notice</td>
+                        <td><input type="text" name="attr_skill_notice" title="skill_notice" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_notice_ranks" title="skill_notice_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_wis" title="wis" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_notice_equip" title="skill_notice_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_notice_misc" title="skill_notice_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_notice_temp" title="skill_notice_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_notice_note" title="skill_notice_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_notice_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Notice Check}} {{Result=[[1d20cf<0cs>99 + @{skill_notice}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_notice_note} }}">
+                            <button type="roll" name="roll_skill_notice_check" title="skill_notice" value="@{skill_notice_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Perform <input type="text" name="attr_skill_perf1_name" title="skill_perf1_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_perf1" title="skill_perf1" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_perf1_ranks" title="skill_perf1_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_perf1_equip" title="skill_perf1_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_perf1_misc" title="skill_perf1_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_perf1_temp" title="skill_perf1_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_perf1_note" title="skill_perf1_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_perf1_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Perform (@{skill_perf1_name}) Check}} {{Result=[[1d20cf<0cs>99 + @{skill_perf1}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_perf1_note} }}">
+                            <button type="roll" name="roll_skill_perf1_check" title="skill_perf1" value="@{skill_perf1_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Perform <input type="text" name="attr_skill_perf2_name" title="skill_perf2_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_perf2" title="skill_perf2" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_perf2_ranks" title="skill_perf2_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_perf2_equip" title="skill_perf2_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_perf2_misc" title="skill_perf2_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_perf2_temp" title="skill_perf2_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_perf2_note" title="skill_perf2_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_perf2_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Perform (@{skill_perf2_name}) Check}} {{Result=[[1d20cf<0cs>99 + @{skill_perf2}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_perf2_note} }}">
+                            <button type="roll" name="roll_skill_perf2_check" title="skill_perf2" value="@{skill_perf2_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Perform <input type="text" name="attr_skill_perf3_name" title="skill_perf3_name" style="width: 150px;"></td>
+                        <td><input type="text" name="attr_skill_perf3" title="skill_perf3" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_perf3_ranks" title="skill_perf3_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_cha" title="cha" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_perf3_equip" title="skill_perf3_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_perf3_misc" title="skill_perf3_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_perf3_temp" title="skill_perf3_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_perf3_note" title="skill_perf3_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_perf3_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Perform (@{skill_perf3_name}) Check}} {{Result=[[1d20cf<0cs>99 + @{skill_perf3}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_perf3_note} }}">
+                            <button type="roll" name="roll_skill_perf3_check" title="skill_perf3" value="@{skill_perf3_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Pilot</td>
+                        <td><input type="text" name="attr_skill_pilot" title="skill_pilot" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_pilot_ranks" title="skill_pilot_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_untrained_check_penalty" title="untrained_check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_pilot_equip" title="skill_pilot_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_pilot_misc" title="skill_pilot_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_pilot_temp" title="skill_pilot_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_pilot_note" title="skill_pilot_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_pilot_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Pilot Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_pilot}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_pilot_note} }}">
+                            <button type="roll" name="roll_skill_pilot_check" title="skill_pilot" value="@{skill_pilot_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Ride</td>
+                        <td><input type="text" name="attr_skill_ride" title="skill_ride" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_ride_ranks" title="skill_ride_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_untrained_check_penalty" title="untrained_check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_ride_equip" title="skill_ride_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_ride_misc" title="skill_ride_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_ride_temp" title="skill_ride_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_ride_note" title="skill_ride_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_ride_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Ride Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_ride}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_ride_note} }}">
+                            <button type="roll" name="roll_skill_ride_check" title="skill_ride" value="@{skill_ride_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Search</td>
+                        <td><input type="text" name="attr_skill_search" title="skill_search" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_search_ranks" title="skill_search_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_int" title="int" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_search_equip" title="skill_search_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_search_misc" title="skill_search_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_search_temp" title="skill_search_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_search_note" title="skill_search_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_search_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Search Check}} {{Result=[[1d20cf<0cs>99 + @{skill_search}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_search_note} }}">
+                            <button type="roll" name="roll_skill_search_check" title="skill_search" value="@{skill_search_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Sense Motive</td>
+                        <td><input type="text" name="attr_skill_sensmot" title="skill_sensmot" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_sensmot_ranks" title="skill_sensmot_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_wis" title="wis" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_sensmot_equip" title="skill_sensmot_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_sensmot_misc" title="skill_sensmot_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_sensmot_temp" title="skill_sensmot_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_sensmot_note" title="skill_sensmot_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_sensmot_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Sense Motive Check}} {{Result=[[1d20cf<0cs>99 + @{skill_sensmot}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_sensmot_note} }}">
+                            <button type="roll" name="roll_skill_sensmot_check" title="skill_sensmot" value="@{skill_sensmot_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>*Sleight of Hand</td>
+                        <td><input type="text" name="attr_skill_soh" title="skill_soh" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_soh_ranks" title="skill_soh_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_check_penalty" title="check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_soh_equip" title="skill_soh_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_soh_misc" title="skill_soh_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_soh_temp" title="skill_soh_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_soh_note" title="skill_soh_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_soh_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Sleight of Hand Check}} {{subtags2=(trained only)}} {{Result=[[1d20cf<0cs>99 + @{skill_soh}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_soh_note} }}">
+                            <button type="roll" name="roll_skill_soh_check" title="skill_soh" value="@{skill_soh_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Stealth</td>
+                        <td><input type="text" name="attr_skill_stealth" title="skill_stealth" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_stealth_ranks" title="skill_stealth_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_dex" title="dex" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_check_penalty" title="check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_size_stealth" title="size_stealth" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_stealth_equip" title="skill_stealth_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_stealth_misc" title="skill_stealth_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_stealth_temp" title="skill_stealth_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_stealth_note" title="skill_stealth_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_stealth_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Stealth Check}} {{Result=[[1d20cf<0cs>99 + @{skill_stealth}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_stealth_note} }}">
+                            <button type="roll" name="roll_skill_stealth_check" title="skill_stealth" value="@{skill_stealth_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Survival</td>
+                        <td><input type="text" name="attr_skill_survival" title="skill_survival" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_survival_ranks" title="skill_survival_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_wis" title="wis" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_survival_equip" title="skill_survival_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_survival_misc" title="skill_survival_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_survival_temp" title="skill_survival_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_survival_note" title="skill_survival_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_survival_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Survival Check}} {{Result=[[1d20cf<0cs>99 + @{skill_survival}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_survival_note} }}">
+                            <button type="roll" name="roll_skill_survival_check" title="skill_survival" value="@{skill_survival_macro}"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Swim</td>
+                        <td><input type="text" name="attr_skill_swim" title="skill_swim" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="number" name="attr_skill_swim_ranks" title="skill_swim_ranks" value="0" min="0" class="input-spin2"></td>
+                        <td><input type="text" name="attr_str" title="str" value="0" readonly="readonly" class="input-num3"></td>
+                        <td><input type="text" name="attr_swim_check_penalty" title="swim_check_penalty" value="0" readonly="readonly" class="input-num3"></td>
+                        <td></td>
+                        <td><input type="number" name="attr_skill_swim_equip" title="skill_swim_equip" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_swim_misc" title="skill_swim_misc" value="0" class="input-spin2"></td>
+                        <td><input type="number" name="attr_skill_swim_temp" title="skill_swim_temp" value="0" class="input-spin2"></td>
+                        <td><textarea name="attr_skill_swim_note" title="skill_swim_note" placeholder="Note" rows="1" cols="20"></textarea></td>
+                        <td>
+                            <input type="hidden" name="attr_skill_swim_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Swim Check}} {{Result=[[1d20cf<0cs>99 + @{skill_swim}[skill] - @{shaken_penalty}[shaken] ]]}} {{notes=@{skill_swim_note} }}">
+                            <button type="roll" name="roll_skill_swim_check" title="skill_swim" value="@{skill_swim_macro}"></button>
+                        </td>
+                    </tr>
+                </table>
+                *: trained only
+                <!--TODO: other skills (repeating)-->
+            </td>
+        </tr>
+    </table>
+
+    <div class="t20-sheet-left">
+        <table class="sheet-section section-armor">
+            <tr><td class="section-header">Armor</td></tr>
+            <tr>
+                <td>
+                    <table class="stat-table">
+                        <tr>
+                            <th>Armor</th>
+                            <th>Type</th>
+                            <th>Proficient</th>
+                            <th>Toughness</th>
+                            <th>Check<br>Penalty</th>
+                            <th>Weight</th>
+                        </tr>
+                        <tr>
+                            <td><input type="text" name="attr_armor_name" title="armor_name" style="width: 120px;"></td>
+                            <td>
+                                <select name="attr_armor_type" title="armor_type" class="input-dropdown-medium">
+                                    <option value="light">Light</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="heavy">Heavy</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="attr_armor_proficient" title="armor_proficient" class="input-dropdown-small">
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </td>
+                            <td><input type="number" name="attr_armor_bonus" title="armor_bonus" value="0" min="0" class="input-spin2"></td>
+                            <td><input type="number" name="attr_check_penalty" title="check_penalty" value="0" min="0" class="input-spin2"></td>
+                            <td><input type="text" name="attr_armor_weight" title="armor_weight" style="width: 50px;"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-equipment">
+            <tr><td class="section-header">Equipment</td></tr>
+            <tr>
+                <td>
+                    <table>
+                        <tr>
+                            <td>
+                                Light Load
+                                <input type="text" name="attr_load_light" title="load_light" value="33" readonly="readonly" class="input-num4">
+                            </td>
+                            <td>
+                                Medium Load
+                                <input type="text" name="attr_load_medium" title="load_medium" value="66" readonly="readonly" class="input-num4">
+                            </td>
+                            <td>
+                                Heavy Load
+                                <input type="text" name="attr_load_heavy" title="load_heavy" value="100" readonly="readonly" class="input-num4">
+                            </td>
+                            <td>
+                                Max Load
+                                <input type="text" name="attr_load_max" title="load_max" value="200" readonly="readonly" class="input-num4">
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <textarea class="inputbox" rows="9" cols="55" style="width: 97%;" name="attr_equipment" title="equipment"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="t20-sheet-right">
+        <table class="sheet-section section-wealth-reputation">
+            <tr><td class="section-header">Wealth &amp; Reputation</td></tr>
+            <tr>
+                <td>
+                    <table class="info-table">
+                        <tr>
+                            <td>Wealth</td>
+                            <td>
+                                <input type="number" name="attr_wealth" title="wealth" value="0" min="0" class="input-spin3">
+                                <input type="hidden" name="attr_wealth_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Wealth Check}} {{Result=[[1d20cf<0cs>99 + @{wealth}[wealth] ]]}}">
+                                <button type="roll" name="roll_wealth_check" title="wealth_check" value="@{wealth_macro}"></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Prof. Skill</td>
+                            <td><input type="text" name="attr_prof_skill" title="prof_skill" style="min-width: 150px;"></td>
+                        </tr>
+                        <tr>
+                            <td>Reputation</td>
+                            <td>
+                                <input type="number" name="attr_reputation" title="reputation" value="0" min="0" class="input-spin3">
+                                <input type="hidden" name="attr_reputation_macro" value="&{template:True20Generic} {{name=@{character_name} }} {{subtags=Reputation Check}} {{Result=[[1d20cf<0cs>99 + @{reputation}[reputation] ]]}}">
+                                <button type="roll" name="roll_wealth_check" title="wealth_check" value="@{reputation_macro}"></button>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-languages">
+            <tr><td class="section-header">Languages</td></tr>
+            <tr>
+                <td>
+                    <textarea class="inputbox" rows="4" cols="55" style="width: 97%;" name="attr_languages" title="languages"></textarea>
+                </td>
+            </tr>
+        </table>
+
+        <table class="sheet-section section-special-abilities">
+            <tr><td class="section-header">Special Abilities</td></tr>
+            <tr>
+                <td>
+                    <textarea class="inputbox" rows="4" cols="55" style="width: 97%;" name="attr_special_abils" title="special_abils"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
+<rolltemplate class="sheet-rolltemplate-True20Generic">
+    <table>
+        <tr><th colspan="2">{{name}}</th></tr>
+        {{#subtags}}<tr><td colspan="2" class="sheet-subheader">{{subtags}}</td></tr>{{/subtags}}
+        {{#subtags2}}<tr><td colspan="2" class="sheet-subheader">{{subtags2}}</td></tr>{{/subtags2}}
+        {{#allprops() subtags subtags2 notes}}
+        <tr><td class="sheet-row-label">{{key}}</td><td>{{value}}</td></tr>
+        {{/allprops() subtags subtags2 notes}}
+        {{#notes}}<tr><td colspan="2" class="sheet-footer">{{notes}}</td></tr>{{/notes}}
+    </table>
+</rolltemplate>
+
+<rolltemplate class="sheet-rolltemplate-True20Attack">
+    <table>
+        <tr><th colspan="2" class="sheet-header-attack">{{name}}</th></tr>
+        {{#subtags}}<tr><td colspan="2" class="sheet-subheader">{{subtags}}</td></tr>{{/subtags}}
+        {{#subtags2}}<tr><td colspan="2" class="sheet-subheader">{{subtags2}}</td></tr>{{/subtags2}}
+        <tr>
+            <td class="sheet-row-label">Attack 1</td>
+            <td>
+                {{attack1}}
+                {{#rollWasCrit() attack1}} (crit: {{critconfirm1}}){{/rollWasCrit() attack1}}
+            </td>
+        </tr>
+        <tr>
+            <td class="sheet-row-label">Damage 1</td>
+            <td>
+                {{damage1}}
+                {{#rollWasCrit() attack1}} (crit: {{critdamage1}}){{/rollWasCrit() attack1}}
+            </td>
+        </tr>
+        {{#attack2}}
+        <tr>
+            <td class="sheet-row-label">Attack 2</td>
+            <td>
+                {{attack2}}
+                {{#rollWasCrit() attack2}} (crit: {{critconfirm2}}){{/rollWasCrit() attack2}}
+            </td>
+        </tr>
+        <tr>
+            <td class="sheet-row-label">Damage 2</td>
+            <td>
+                {{damage2}}
+                {{#rollWasCrit() attack2}} (crit: {{critdamage2}}){{/rollWasCrit() attack2}}
+            </td>
+        </tr>
+        {{/attack2}}
+        {{#notes}}<tr><td colspan="2" class="sheet-footer">{{notes}}</td></tr>{{/notes}}
+    </table>
+</rolltemplate>
+
+
+<script type="text/worker">
+function update_size(updates, size) {
+    if (size >= 0) {
+        updates["size_combat"] = -(2 ** (size - 1));
+    }
+    else {
+        updates["size_combat"] = 2 ** (-size - 1);
+    }
+    updates["size_grap"] = size * 4;
+    updates["size_stealth"] = size * -4;
+    updates["size_tough"] = size * 2;
+}
+
+function update_ability(updates, ability, abil_base, abil_equip, abil_misc, abil_temp, abil_penalty) {
+    updates[ability] = abil_base + abil_equip + abil_misc + abil_temp - abil_penalty;
+}
+
+function update_save(updates, save, save_base, save_abil, save_equip, save_misc, save_temp) {
+    updates[save] = save_base + save_abil + save_equip + save_misc + save_temp;
+}
+
+function update_toughness_base(updates, armor_bonus, size_tough) {
+    updates["toughness_base"] = armor_bonus + size_tough;
+}
+
+function update_toughness(updates, toughness_base, con, toughness_equip, toughness_misc, toughness_temp) {
+    updates["toughness"] = toughness_base + con + toughness_equip + toughness_misc + toughness_temp;
+}
+
+function update_sanity_abil(updates, sanity_ability, wis, cha) {
+    updates["sanity_abil"] = (sanity_ability == "cha" ? cha : wis);
+}
+
+function update_sanity(updates, sanity_base, sanity_abil, sanity_misc, sanity_temp) {
+    updates["sanity"] = sanity_base + sanity_abil + sanity_misc + sanity_temp;
+}
+
+function update_shaken_penalty(updates, wounded, confused) {
+    if ((wounded > 0) || (confused > 0)) {
+        updates["shaken_penalty"] = 2;
+    }
+    else {
+        updates["shaken_penalty"] = 0;
+    }
+}
+
+function update_damage_penalty(updates, wounded, disabled, dying) {
+    if ((wounded > 0) || (disabled > 0) || (dying > 0)) {
+        updates["damage_penalty"] = 4;
+    }
+    else {
+        updates["damage_penalty"] = 0;
+    }
+}
+
+function update_fear_penalty(updates, unhinged, psychotic) {
+    if (psychotic > 0) {
+        updates["fear_penalty"] = 3;
+    }
+    else if (unhinged > 0) {
+        updates["fear_penalty"] = 2;
+    }
+    else {
+        updates["fear_penalty"] = 0;
+    }
+}
+
+function update_fatigue_penalty(updates, winded, fatigued, exhausted) {
+    if (exhausted > 0) {
+        updates["fatigue_penalty"] = 3;
+    }
+    else if (fatigued > 0) {
+        updates["fatigue_penalty"] = 2;
+    }
+    else if (winded > 0) {
+        updates["fatigue_penalty"] = 1;
+    }
+    else {
+        updates["fatigue_penalty"] = 0;
+    }
+}
+
+function update_initiative(updates, dex, initiative_mod) {
+    updates["initiative"] = dex + initiative_mod;
+}
+
+function update_defense(updates, defense, defense_base, defense_abil, size_combat, defense_mod) {
+    updates[defense] = defense_base + defense_abil + size_combat + defense_mod;
+}
+
+function update_defense_base(updates, combat_bonus) {
+    updates["defense_base"] = 10 + combat_bonus;
+}
+
+function update_attack(updates, attack, combat_bonus, attack_abil, size_combat, attack_mod) {
+    updates[attack] = combat_bonus + attack_abil + size_combat + attack_mod;
+}
+
+function update_power_abil(updates, power_ability, intel, wis, cha) {
+    if (power_ability == "cha") {
+        updates["power_abil"] = cha;
+    }
+    else if (power_ability == "wis") {
+        updates["power_abil"] = wis;
+    }
+    else {
+        updates["power_abil"] = intel;
+    }
+}
+
+function update_power_bonus(updates, power_ranks, power_abil, power_mod) {
+    updates["power_bonus"] = power_ranks + power_abil + power_mod;
+}
+
+function update_power_dc(updates, power_dc_base, power_abil, power_dc_mod) {
+    updates["power_dc"] = power_dc_base + power_abil + power_dc_mod;
+}
+
+function update_load(updates, str) {
+    const max_loads = [20, 40, 80, 120, 160, 200, 260, 350, 460, 600, 800, 1040, 1400, 1840, 2400, 3200];
+    let idx = str + 5;
+    if (idx < 0) {
+        idx = 0;
+    }
+    if (idx >= max_loads.length) {
+        idx + max_loads.length - 1;
+    }
+    let max_load = max_loads[idx];
+    updates["load_max"] = max_load;
+    updates["load_heavy"] = Math.floor(max_load / 2);
+    updates["load_medium"] = Math.floor(max_load / 3);
+    updates["load_light"] = Math.floor(max_load / 6);
+}
+
+function update_skill(updates, skill_name, skill_ranks, skill_abil, check_penalty, skill_equip, skill_misc, skill_temp) {
+    updates[skill_name] = skill_ranks + skill_abil - check_penalty + skill_equip + skill_misc + skill_temp;
+}
+
+const T20_SKILL_SPECS = [
+    // [ident, ability, check penalty]
+    ["acro", "dex", "check_penalty"],
+    ["bluff", "cha", null],
+    ["climb", "str", "check_penalty"],
+    ["comp", "int", null],
+    ["conc", "wis", null],
+    ["craft1", "int", null],
+    ["craft2", "int", null],
+    ["craft3", "int", null],
+    ["diplo", "cha", null],
+    ["disdev", "int", null],
+    ["disguise", "cha", null],
+    ["drive", "dex", "untrained_check_penalty"],
+    ["escape", "dex", "check_penalty"],
+    ["ginfo", "cha", null],
+    ["hanimal", "cha", null],
+    ["intim", "cha", null],
+    ["jump", "str", "check_penalty"],
+    ["know1", "int", null],
+    ["know2", "int", null],
+    ["know3", "int", null],
+    ["med", "wis", null],
+    ["notice", "wis", null],
+    ["perf1", "cha", null],
+    ["perf2", "cha", null],
+    ["perf3", "cha", null],
+    ["pilot", "dex", "untrained_check_penalty"],
+    ["ride", "dex", "untrained_check_penalty"],
+    ["search", "int", null],
+    ["sensmot", "wis", null],
+    ["soh", "dex", "check_penalty"],
+    ["stealth", "dex", "check_penalty"],
+    ["survival", "wis", null],
+    ["swim", "str", "swim_check_penalty"],
+];
+
+function update_all_skills(predicate) {
+    let attr_set = new Set();
+    let skills = [];
+    for (const skill_spec of T20_SKILL_SPECS) {
+        if (!predicate(skill_spec)) {
+            continue;
+        }
+        skills.push(skill_spec);
+        const ident = skill_spec[0], ability = skill_spec[1], check_penalty = skill_spec[2];
+        attr_set.add(`skill_${ident}_ranks`);
+        attr_set.add(ability);
+        attr_set.add(`skill_${ident}_equip`);
+        attr_set.add(`skill_${ident}_misc`);
+        attr_set.add(`skill_${ident}_temp`);
+        if (check_penalty !== null) {
+            attr_set.add(check_penalty);
+        }
+    }
+    if (skills.length <= 0) {
+        return;
+    }
+    getAttrs(Array.from(attr_set), function(values) {
+        let updates = {};
+        for (const skill_spec of skills) {
+            const ident = skill_spec[0], ability = skill_spec[1], check_penalty = skill_spec[2];
+            let skill_name = `skill_${ident}`;
+            let skill_ranks = parseInt(values[`skill_${ident}_ranks`]) || 0;
+            let skill_abil = parseInt(values[ability]) || 0;
+            let skill_equip = parseInt(values[`skill_${ident}_equip`]) || 0;
+            let skill_misc = parseInt(values[`skill_${ident}_misc`]) || 0;
+            let skill_temp = parseInt(values[`skill_${ident}_temp`]) || 0;
+            let skill_check_penalty = 0;
+            if (check_penalty !== null) {
+                skill_check_penalty = parseInt(values[check_penalty]) || 0;
+            }
+            update_skill(updates, skill_name, skill_ranks, skill_abil, skill_check_penalty, skill_equip, skill_misc, skill_temp);
+        }
+        setAttrs(updates);
+    });
+}
+
+//TODO: add similar (single and all) for repeating section skills
+
+function update_check_penalties(updates, proficient, check_penalty) {
+    updates["untrained_check_penalty"] = (proficient == 0 ? check_penalty : 0);
+    updates["swim_check_penalty"] = check_penalty * 2;
+}
+
+on("change:size", function() {
+    getAttrs(["size"], function(values) {
+        let updates = {};
+        let size = parseInt(values.size) || 0;
+        update_size(updates, size);
+        setAttrs(updates);
+    });
+});
+
+on("change:str", function() {
+    getAttrs(["defense_base", "str", "size_combat", "parry_mod", "combat_bonus", "size_grap", "grapple_mod"], function(values) {
+        let updates = {};
+        let defense_base = parseInt(values.defense_base) || 0;
+        let str = parseInt(values.str) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let parry_mod = parseInt(values.parry_mod) || 0;
+        let combat_bonus = parseInt(values.combat_bonus) || 0;
+        let size_grap = parseInt(values.size_grap) || 0;
+        let grapple_mod = parseInt(values.grapple_mod) || 0;
+        update_defense(updates, "parry", defense_base, str, size_combat, parry_mod);
+        update_attack(updates, "grapple", combat_bonus, str, size_grap, grapple_mod);
+        update_load(updates, str);
+        setAttrs(updates);
+    });
+    update_all_skills(function(skill_spec) {
+        return skill_spec[1] == "str";
+    });
+});
+
+on("change:dex", function() {
+    getAttrs(["ref_base", "dex", "ref_equip", "ref_misc", "ref_temp", "initiative_mod", "defense_base", "size_combat", "dodge_mod", "combat_bonus", "melee_mod", "ranged_mod"], function(values) {
+        let updates = {};
+        let ref_base = parseInt(values.ref_base) || 0;
+        let dex = parseInt(values.dex) || 0;
+        let ref_equip = parseInt(values.ref_equip) || 0;
+        let ref_misc = parseInt(values.ref_misc) || 0;
+        let ref_temp = parseInt(values.ref_temp) || 0;
+        let initiative_mod = parseInt(values.initiative_mod) || 0;
+        let defense_base = parseInt(values.defense_base) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let dodge_mod = parseInt(values.dodge_mod) || 0;
+        let combat_bonus = parseInt(values.combat_bonus) || 0;
+        let melee_mod = parseInt(values.melee_mod) || 0;
+        let ranged_mod = parseInt(values.ranged_mod) || 0;
+        update_save(updates, "ref", ref_base, dex, ref_equip, ref_misc, ref_temp)
+        update_initiative(updates, dex, initiative_mod)
+        update_defense(updates, "dodge", defense_base, dex, size_combat, dodge_mod)
+        update_attack(updates, "melee", combat_bonus, dex, size_combat, melee_mod)
+        update_attack(updates, "ranged", combat_bonus, dex, size_combat, ranged_mod)
+        setAttrs(updates);
+    });
+    update_all_skills(function(skill_spec) {
+        return skill_spec[1] == "dex";
+    });
+});
+
+on("change:con", function() {
+    getAttrs(["fort_base", "con", "fort_equip", "fort_misc", "fort_temp", "toughness_base", "toughness_equip", "toughness_misc", "toughness_temp"], function(values) {
+        let updates = {};
+        let fort_base = parseInt(values.fort_base) || 0;
+        let con = parseInt(values.con) || 0;
+        let fort_equip = parseInt(values.fort_equip) || 0;
+        let fort_misc = parseInt(values.fort_misc) || 0;
+        let fort_temp = parseInt(values.fort_temp) || 0;
+        let toughness_base = parseInt(values.toughness_base) || 0;
+        let toughness_equip = parseInt(values.toughness_equip) || 0;
+        let toughness_misc = parseInt(values.toughness_misc) || 0;
+        let toughness_temp = parseInt(values.toughness_temp) || 0;
+        update_save(updates, "fort", fort_base, con, fort_equip, fort_misc, fort_temp);
+        update_toughness(updates, toughness_base, con, toughness_equip, toughness_misc, toughness_temp);
+        setAttrs(updates);
+    });
+    update_all_skills(function(skill_spec) {
+        return skill_spec[1] == "con";
+    });
+});
+
+on("change:int", function() {
+    getAttrs(["power_ability", "int", "wis", "cha"], function(values) {
+        let updates = {};
+        let power_ability = values.power_ability;
+        let intel = parseInt(values.int) || 0;
+        let wis = parseInt(values.wis) || 0;
+        let cha = parseInt(values.cha) || 0;
+        update_power_abil(updates, power_ability, intel, wis, cha);
+        setAttrs(updates);
+    });
+    update_all_skills(function(skill_spec) {
+        return skill_spec[1] == "int";
+    });
+});
+
+on("change:wis", function() {
+    getAttrs(["will_base", "wis", "will_equip", "will_misc", "will_temp", "sanity_ability", "cha", "power_ability", "int"], function(values) {
+        let updates = {};
+        let will_base = parseInt(values.will_base) || 0;
+        let wis = parseInt(values.wis) || 0;
+        let will_equip = parseInt(values.will_equip) || 0;
+        let will_misc = parseInt(values.will_misc) || 0;
+        let will_temp = parseInt(values.will_temp) || 0;
+        let sanity_ability = values.sanity_ability;
+        let cha = parseInt(values.cha) || 0;
+        let power_ability = values.power_ability;
+        let intel = parseInt(values.int) || 0;
+        update_save(updates, "will", will_base, wis, will_equip, will_misc, will_temp);
+        update_sanity_abil(updates, sanity_ability, wis, cha);
+        update_power_abil(updates, power_ability, intel, wis, cha);
+        setAttrs(updates);
+    });
+    update_all_skills(function(skill_spec) {
+        return skill_spec[1] == "wis";
+    });
+});
+
+on("change:cha", function() {
+    getAttrs(["sanity_ability", "wis", "cha", "power_ability", "int"], function(values) {
+        let updates = {};
+        let sanity_ability = values.sanity_ability;
+        let wis = parseInt(values.wis) || 0;
+        let cha = parseInt(values.cha) || 0;
+        let power_ability = values.power_ability;
+        let intel = parseInt(values.int) || 0;
+        update_sanity_abil(updates, sanity_ability, wis, cha);
+        update_power_abil(updates, power_ability, intel, wis, cha);
+        setAttrs(updates);
+    });
+    update_all_skills(function(skill_spec) {
+        return skill_spec[1] == "cha";
+    });
+});
+
+on("change:str_base change:str_equip change:str_misc change:str_temp", function() {
+    getAttrs(["str_base", "str_equip", "str_misc", "str_temp", "fatigue_penalty"], function(values) {
+        let updates = {};
+        let str_base = parseInt(values.str_base) || 0;
+        let str_equip = parseInt(values.str_equip) || 0;
+        let str_misc = parseInt(values.str_misc) || 0;
+        let str_temp = parseInt(values.str_temp) || 0;
+        let fatigue_penalty = parseInt(values.fatigue_penalty) || 0;
+        update_ability(updates, "str", str_base, str_equip, str_misc, str_temp, fatigue_penalty);
+        setAttrs(updates);
+    });
+});
+
+on("change:dex_base change:dex_equip change:dex_misc change:dex_temp", function() {
+    getAttrs(["dex_base", "dex_equip", "dex_misc", "dex_temp", "fatigue_penalty"], function(values) {
+        let updates = {};
+        let dex_base = parseInt(values.dex_base) || 0;
+        let dex_equip = parseInt(values.dex_equip) || 0;
+        let dex_misc = parseInt(values.dex_misc) || 0;
+        let dex_temp = parseInt(values.dex_temp) || 0;
+        let fatigue_penalty = parseInt(values.fatigue_penalty) || 0;
+        update_ability(updates, "dex", dex_base, dex_equip, dex_misc, dex_temp, fatigue_penalty);
+        setAttrs(updates);
+    });
+});
+
+on("change:con_base change:con_equip change:con_misc change:con_temp", function() {
+    getAttrs(["con_base", "con_equip", "con_misc", "con_temp"], function(values) {
+        let updates = {};
+        let con_base = parseInt(values.con_base) || 0;
+        let con_equip = parseInt(values.con_equip) || 0;
+        let con_misc = parseInt(values.con_misc) || 0;
+        let con_temp = parseInt(values.con_temp) || 0;
+        update_ability(updates, "con", con_base, con_equip, con_misc, con_temp, 0);
+        setAttrs(updates);
+    });
+});
+
+on("change:int_base change:int_equip change:int_misc change:int_temp", function() {
+    getAttrs(["int_base", "int_equip", "int_misc", "int_temp", "fear_penalty"], function(values) {
+        let updates = {};
+        let int_base = parseInt(values.int_base) || 0;
+        let int_equip = parseInt(values.int_equip) || 0;
+        let int_misc = parseInt(values.int_misc) || 0;
+        let int_temp = parseInt(values.int_temp) || 0;
+        let fear_penalty = parseInt(values.fear_penalty) || 0;
+        update_ability(updates, "int", int_base, int_equip, int_misc, int_temp, fear_penalty);
+        setAttrs(updates);
+    });
+});
+
+on("change:wis_base change:wis_equip change:wis_misc change:wis_temp", function() {
+    getAttrs(["wis_base", "wis_equip", "wis_misc", "wis_temp", "fear_penalty"], function(values) {
+        let updates = {};
+        let wis_base = parseInt(values.wis_base) || 0;
+        let wis_equip = parseInt(values.wis_equip) || 0;
+        let wis_misc = parseInt(values.wis_misc) || 0;
+        let wis_temp = parseInt(values.wis_temp) || 0;
+        let fear_penalty = parseInt(values.fear_penalty) || 0;
+        update_ability(updates, "wis", wis_base, wis_equip, wis_misc, wis_temp, fear_penalty);
+        setAttrs(updates);
+    });
+});
+
+on("change:cha_base change:cha_equip change:cha_misc change:cha_temp", function() {
+    getAttrs(["cha_base", "cha_equip", "cha_misc", "cha_temp", "fear_penalty"], function(values) {
+        let updates = {};
+        let cha_base = parseInt(values.cha_base) || 0;
+        let cha_equip = parseInt(values.cha_equip) || 0;
+        let cha_misc = parseInt(values.cha_misc) || 0;
+        let cha_temp = parseInt(values.cha_temp) || 0;
+        let fear_penalty = parseInt(values.fear_penalty) || 0;
+        update_ability(updates, "cha", cha_base, cha_equip, cha_misc, cha_temp, fear_penalty);
+        setAttrs(updates);
+    });
+});
+
+on("change:fatigue_penalty", function() {
+    getAttrs(["str_base", "str_equip", "str_misc", "str_temp", "fatigue_penalty", "dex_base", "dex_equip", "dex_misc", "dex_temp"], function(values) {
+        let updates = {};
+        let str_base = parseInt(values.str_base) || 0;
+        let str_equip = parseInt(values.str_equip) || 0;
+        let str_misc = parseInt(values.str_misc) || 0;
+        let str_temp = parseInt(values.str_temp) || 0;
+        let fatigue_penalty = parseInt(values.fatigue_penalty) || 0;
+        let dex_base = parseInt(values.dex_base) || 0;
+        let dex_equip = parseInt(values.dex_equip) || 0;
+        let dex_misc = parseInt(values.dex_misc) || 0;
+        let dex_temp = parseInt(values.dex_temp) || 0;
+        update_ability(updates, "str", str_base, str_equip, str_misc, str_temp, fatigue_penalty);
+        update_ability(updates, "dex", dex_base, dex_equip, dex_misc, dex_temp, fatigue_penalty);
+        setAttrs(updates);
+    });
+});
+
+on("change:fear_penalty", function() {
+    getAttrs(["int_base", "int_equip", "int_misc", "int_temp", "fear_penalty", "wis_base", "wis_equip", "wis_misc", "wis_temp", "cha_base", "cha_equip", "cha_misc", "cha_temp"], function(values) {
+        let updates = {};
+        let int_base = parseInt(values.int_base) || 0;
+        let int_equip = parseInt(values.int_equip) || 0;
+        let int_misc = parseInt(values.int_misc) || 0;
+        let int_temp = parseInt(values.int_temp) || 0;
+        let fear_penalty = parseInt(values.fear_penalty) || 0;
+        let wis_base = parseInt(values.wis_base) || 0;
+        let wis_equip = parseInt(values.wis_equip) || 0;
+        let wis_misc = parseInt(values.wis_misc) || 0;
+        let wis_temp = parseInt(values.wis_temp) || 0;
+        let cha_base = parseInt(values.cha_base) || 0;
+        let cha_equip = parseInt(values.cha_equip) || 0;
+        let cha_misc = parseInt(values.cha_misc) || 0;
+        let cha_temp = parseInt(values.cha_temp) || 0;
+        update_ability(updates, "int", int_base, int_equip, int_misc, int_temp, fear_penalty);
+        update_ability(updates, "wis", wis_base, wis_equip, wis_misc, wis_temp, fear_penalty);
+        update_ability(updates, "cha", cha_base, cha_equip, cha_misc, cha_temp, fear_penalty);
+        setAttrs(updates);
+    });
+});
+
+on("change:fort_base change:fort_equip change:fort_misc change:fort_temp", function() {
+    getAttrs(["fort_base", "con", "fort_equip", "fort_misc", "fort_temp"], function(values) {
+        let updates = {};
+        let fort_base = parseInt(values.fort_base) || 0;
+        let con = parseInt(values.con) || 0;
+        let fort_equip = parseInt(values.fort_equip) || 0;
+        let fort_temp = parseInt(values.fort_temp) || 0;
+        let fort_misc = parseInt(values.fort_misc) || 0;
+        update_save(updates, "fort", fort_base, con, fort_equip, fort_misc, fort_temp);
+        setAttrs(updates);
+    });
+});
+
+on("change:ref_base change:ref_equip change:ref_misc change:ref_temp", function() {
+    getAttrs(["ref_base", "dex", "ref_equip", "ref_misc", "ref_temp"], function(values) {
+        let updates = {};
+        let ref_base = parseInt(values.ref_base) || 0;
+        let dex = parseInt(values.dex) || 0;
+        let ref_equip = parseInt(values.ref_equip) || 0;
+        let ref_temp = parseInt(values.ref_temp) || 0;
+        let ref_misc = parseInt(values.ref_misc) || 0;
+        update_save(updates, "ref", ref_base, dex, ref_equip, ref_misc, ref_temp);
+        setAttrs(updates);
+    });
+});
+
+on("change:will_base change:will_equip change:will_misc change:will_temp", function() {
+    getAttrs(["will_base", "wis", "will_equip", "will_misc", "will_temp"], function(values) {
+        let updates = {};
+        let will_base = parseInt(values.will_base) || 0;
+        let wis = parseInt(values.wis) || 0;
+        let will_equip = parseInt(values.will_equip) || 0;
+        let will_temp = parseInt(values.will_temp) || 0;
+        let will_misc = parseInt(values.will_misc) || 0;
+        update_save(updates, "will", will_base, wis, will_equip, will_misc, will_temp);
+        setAttrs(updates);
+    });
+});
+
+on("change:size_tough", function() {
+    getAttrs(["armor_bonus", "size_tough"], function(values) {
+        let updates = {};
+        let armor_bonus = parseInt(values.armor_bonus) || 0;
+        let size_tough = parseInt(values.size_tough) || 0;
+        update_toughness_base(updates, armor_bonus, size_tough);
+        setAttrs(updates);
+    });
+});
+
+on("change:toughness_base change:toughness_equip change:toughness_misc change:toughness_temp", function() {
+    getAttrs(["toughness_base", "con", "toughness_equip", "toughness_misc", "toughness_temp"], function(values) {
+        let updates = {};
+        let toughness_base = parseInt(values.toughness_base) || 0;
+        let con = parseInt(values.con) || 0;
+        let toughness_equip = parseInt(values.toughness_equip) || 0;
+        let toughness_misc = parseInt(values.toughness_misc) || 0;
+        let toughness_temp = parseInt(values.toughness_temp) || 0;
+        update_toughness(updates, toughness_base, con, toughness_equip, toughness_misc, toughness_temp);
+        setAttrs(updates);
+    });
+});
+
+on("change:sanity_ability", function() {
+    getAttrs(["sanity_ability", "wis", "cha"], function(values) {
+        let updates = {};
+        let sanity_ability = sanity_ability;
+        let wis = parseInt(values.wis) || 0;
+        let cha = parseInt(values.cha) || 0;
+        update_sanity_abil(updates, sanity_ability, wis, cha);
+        setAttrs(updates);
+    });
+});
+
+on("change:sanity_base change:sanity_abil change:sanity_misc change:sanity_temp", function() {
+    getAttrs(["sanity_base", "sanity_abil", "sanity_misc", "sanity_temp"], function(values) {
+        let updates = {};
+        let sanity_base = parseInt(values.sanity_base) || 0;
+        let sanity_abil = parseInt(values.sanity_abil) || 0;
+        let sanity_misc = parseInt(values.sanity_misc) || 0;
+        let sanity_temp = parseInt(values.sanity_temp) || 0;
+        update_sanity(updates, sanity_base, sanity_abil, sanity_misc, sanity_temp);
+        setAttrs(updates);
+    });
+});
+
+on("change:hurt", function() {
+    getAttrs(["hurt", "prev_hurt", "bruised"], function(values) {
+        let updates = {};
+        let hurt = parseInt(values.hurt) || 0;
+        let prev_hurt = parseInt(values.prev_hurt) || 0;
+        let bruised = parseInt(values.bruised) || 0;
+        if (hurt > prev_hurt) {
+            updates["bruised"] = bruised + (hurt - prev_hurt);
+        }
+        updates["prev_hurt"] = hurt;
+        setAttrs(updates);
+    });
+});
+
+on("change:wounded", function() {
+    getAttrs(["wounded", "prev_wounded", "dazed", "confused", "disabled", "dying"], function(values) {
+        let updates = {};
+        let wounded = parseInt(values.wounded) || 0;
+        let prev_wounded = parseInt(values.prev_wounded) || 0;
+        let dazed = parseInt(values.dazed) || 0;
+        let confused = parseInt(values.confused) || 0;
+        let disabled = parseInt(values.disabled) || 0;
+        let dying = parseInt(values.dying) || 0;
+        if (wounded > prev_wounded) {
+            updates["dazed"] = dazed + (wounded - prev_wounded);
+        }
+        updates["prev_wounded"] = wounded;
+        update_shaken_penalty(updates, wounded, confused);
+        update_damage_penalty(updates, wounded, disabled, dying);
+        setAttrs(updates);
+    });
+});
+
+on("change:disabled", function() {
+    getAttrs(["disabled", "prev_disabled", "wounded", "dying"], function(values) {
+        let updates = {};
+        let disabled = parseInt(values.disabled) || 0;
+        let prev_disabled = parseInt(values.prev_disabled) || 0;
+        let wounded = parseInt(values.wounded) || 0;
+        let dying = parseInt(values.dying) || 0;
+        if (disabled > prev_disabled) {
+            updates["staggered"] = disabled;
+        }
+        updates["prev_disabled"] = disabled;
+        update_damage_penalty(updates, wounded, disabled, dying);
+        setAttrs(updates);
+    });
+});
+
+on("change:dying", function() {
+    getAttrs(["dying", "prev_dying", "wounded", "disabled"], function(values) {
+        let updates = {};
+        let dying = parseInt(values.dying) || 0;
+        let prev_dying = parseInt(values.prev_dying) || 0;
+        let wounded = parseInt(values.wounded) || 0;
+        let disabled = parseInt(values.disabled) || 0;
+        if (dying > prev_dying) {
+            updates["unconscious"] = dying;
+        }
+        updates["prev_dying"] = dying;
+        update_damage_penalty(updates, wounded, disabled, dying);
+        setAttrs(updates);
+    });
+});
+
+on("change:scared", function() {
+    getAttrs(["scared", "prev_scared", "startled"], function(values) {
+        let updates = {};
+        let scared = parseInt(values.scared) || 0;
+        let prev_scared = parseInt(values.prev_scared) || 0;
+        let startled = parseInt(values.startled) || 0;
+        if (scared > prev_scared) {
+            updates["startled"] = startled + (scared - prev_scared);
+        }
+        updates["prev_scared"] = scared;
+        setAttrs(updates);
+    });
+});
+
+on("change:confused", function() {
+    getAttrs(["confused", "prev_confused", "wounded"], function(values) {
+        let updates = {};
+        let confused = parseInt(values.confused) || 0;
+        let prev_confused = parseInt(values.prev_confused) || 0;
+        let wounded = parseInt(values.wounded) || 0;
+        if (confused > prev_confused) {
+            updates["spooked"] = confused;
+        }
+        updates["prev_confused"] = confused;
+        update_shaken_penalty(updates, wounded, confused);
+        setAttrs(updates);
+    });
+});
+
+on("change:unhinged", function() {
+    getAttrs(["unhinged", "prev_unhinged", "psychotic"], function(values) {
+        let updates = {};
+        let unhinged = parseInt(values.unhinged) || 0;
+        let prev_unhinged = parseInt(values.prev_unhinged) || 0;
+        let psychotic = parseInt(values.psychotic) || 0;
+        if (unhinged > prev_unhinged) {
+            updates["frightened"] = unhinged;
+        }
+        updates["prev_unhinged"] = unhinged;
+        update_fear_penalty(updates, unhinged, psychotic);
+        setAttrs(updates);
+    });
+});
+
+on("change:psychotic", function() {
+    getAttrs(["psychotic", "prev_psychotic", "unhinged"], function(values) {
+        let updates = {};
+        let psychotic = parseInt(values.psychotic) || 0;
+        let prev_psychotic = parseInt(values.prev_psychotic) || 0;
+        let unhinged = parseInt(values.unhinged) || 0;
+        if (psychotic > prev_psychotic) {
+            updates["terrified"] = psychotic;
+        }
+        updates["prev_psychotic"] = psychotic;
+        update_fear_penalty(updates, unhinged, psychotic);
+        setAttrs(updates);
+    });
+});
+
+on("change:winded change:fatigued change:exhausted", function() {
+    getAttrs(["winded", "fatigued", "exhausted"], function(values) {
+        let updates = {};
+        let winded = parseInt(values.winded) || 0;
+        let fatigued = parseInt(values.fatigued) || 0;
+        let exhausted = parseInt(values.exhausted) || 0;
+        update_fatigue_penalty(updates, winded, fatigued, exhausted);
+        setAttrs(updates);
+    });
+});
+
+on("change:initiative_mod", function() {
+    getAttrs(["dex", "initiative_mod"], function(values) {
+        let updates = {};
+        let dex = parseInt(values.dex) || 0;
+        let initiative_mod = parseInt(values.initiative_mod) || 0;
+        update_initiative(updates, dex, initiative_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:flat_footed_mod", function() {
+    getAttrs(["defense_base", "size_combat", "flat_footed_mod"], function(values) {
+        let updates = {};
+        let defense_base = parseInt(values.defense_base) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let flat_footed_mod = parseInt(values.flat_footed_mod) || 0;
+        update_defense(updates, "flat_footed", defense_base, 0, size_combat, flat_footed_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:dodge_mod", function() {
+    getAttrs(["defense_base", "dex", "size_combat", "dodge_mod"], function(values) {
+        let updates = {};
+        let defense_base = parseInt(values.defense_base) || 0;
+        let dex = parseInt(values.dex) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let dodge_mod = parseInt(values.dodge_mod) || 0;
+        update_defense(updates, "dodge", defense_base, dex, size_combat, dodge_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:parry_mod", function() {
+    getAttrs(["defense_base", "str", "size_combat", "parry_mod"], function(values) {
+        let updates = {};
+        let defense_base = parseInt(values.defense_base) || 0;
+        let str = parseInt(values.str) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let parry_mod = parseInt(values.parry_mod) || 0;
+        update_defense(updates, "parry", defense_base, str, size_combat, parry_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:defense_base", function() {
+    getAttrs(["defense_base", "size_combat", "flat_footed_mod", "dex", "dodge_mod", "str", "parry_mod"], function(values) {
+        let updates = {};
+        let defense_base = parseInt(values.defense_base) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let flat_footed_mod = parseInt(values.flat_footed_mod) || 0;
+        let dex = parseInt(values.dex) || 0;
+        let dodge_mod = parseInt(values.dodge_mod) || 0;
+        let str = parseInt(values.str) || 0;
+        let parry_mod = parseInt(values.parry_mod) || 0;
+        update_defense(updates, "flat_footed", defense_base, 0, size_combat, flat_footed_mod);
+        update_defense(updates, "dodge", defense_base, dex, size_combat, dodge_mod);
+        update_defense(updates, "parry", defense_base, str, size_combat, parry_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:size_combat", function() {
+    getAttrs(["defense_base", "size_combat", "flat_footed_mod", "dex", "dodge_mod", "str", "parry_mod", "combat_bonus", "melee_mod", "ranged_mod"], function(values) {
+        let updates = {};
+        let defense_base = parseInt(values.defense_base) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let flat_footed_mod = parseInt(values.flat_footed_mod) || 0;
+        let dex = parseInt(values.dex) || 0;
+        let dodge_mod = parseInt(values.dodge_mod) || 0;
+        let str = parseInt(values.str) || 0;
+        let parry_mod = parseInt(values.parry_mod) || 0;
+        let combat_bonus = parseInt(values.combat_bonus) || 0;
+        let melee_mod = parseInt(values.melee_mod) || 0;
+        let ranged_mod = parseInt(values.ranged_mod) || 0;
+        update_defense(updates, "flat_footed", defense_base, 0, size_combat, flat_footed_mod);
+        update_defense(updates, "dodge", defense_base, dex, size_combat, dodge_mod);
+        update_defense(updates, "parry", defense_base, str, size_combat, parry_mod);
+        update_attack(updates, "melee", combat_bonus, dex, size_combat, melee_mod);
+        update_attack(updates, "ranged", combat_bonus, dex, size_combat, ranged_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:combat_bonus", function() {
+    getAttrs(["combat_bonus", "dex", "size_combat", "melee_mod", "ranged_mod", "str", "size_grap", "grapple_mod"], function(values) {
+        let updates = {};
+        let combat_bonus = parseInt(values.combat_bonus) || 0;
+        let dex = parseInt(values.dex) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let melee_mod = parseInt(values.melee_mod) || 0;
+        let ranged_mod = parseInt(values.ranged_mod) || 0;
+        let str = parseInt(values.str) || 0;
+        let size_grap = parseInt(values.size_grap) || 0;
+        let grapple_mod = parseInt(values.grapple_mod) || 0;
+        update_defense_base(updates, combat_bonus);
+        update_attack(updates, "melee", combat_bonus, dex, size_combat, melee_mod);
+        update_attack(updates, "ranged", combat_bonus, dex, size_combat, ranged_mod);
+        update_attack(updates, "grapple", combat_bonus, str, size_grap, grapple_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:melee_mod", function() {
+    getAttrs(["combat_bonus", "dex", "size_combat", "melee_mod"], function(values) {
+        let updates = {};
+        let combat_bonus = parseInt(values.combat_bonus) || 0;
+        let dex = parseInt(values.dex) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let melee_mod = parseInt(values.melee_mod) || 0;
+        update_attack(updates, "melee", combat_bonus, dex, size_combat, melee_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:ranged_mod", function() {
+    getAttrs(["combat_bonus", "dex", "size_combat", "ranged_mod"], function(values) {
+        let updates = {};
+        let combat_bonus = parseInt(values.combat_bonus) || 0;
+        let dex = parseInt(values.dex) || 0;
+        let size_combat = parseInt(values.size_combat) || 0;
+        let ranged_mod = parseInt(values.ranged_mod) || 0;
+        update_attack(updates, "ranged", combat_bonus, dex, size_combat, ranged_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:grapple_mod change:size_grap", function() {
+    getAttrs(["combat_bonus", "str", "size_grap", "grapple_mod"], function(values) {
+        let updates = {};
+        let combat_bonus = parseInt(values.combat_bonus) || 0;
+        let str = parseInt(values.str) || 0;
+        let size_grap = parseInt(values.size_grap) || 0;
+        let grapple_mod = parseInt(values.grapple_mod) || 0;
+        update_attack(updates, "grapple", combat_bonus, str, size_grap, grapple_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:adept_level", function() {
+    getAttrs(["adept_level"], function(values) {
+        let updates = {};
+        let adept_level = parseInt(values.adept_level) || 0;
+        updates["power_ranks"] = adept_level + 3;
+        updates["power_dc_base"] = 10 + Math.ceil(adept_level / 2);
+        setAttrs(updates);
+    });
+});
+
+on("change:power_ability", function() {
+    getAttrs(["power_ability", "int", "wis", "cha"], function(values) {
+        let updates = {};
+        let power_ability = values.power_ability;
+        let intel = parseInt(values.int) || 0;
+        let wis = parseInt(values.wis) || 0;
+        let cha = parseInt(values.cha) || 0;
+        update_power_abil(updates, power_ability, intel, wis, cha);
+        setAttrs(updates);
+    });
+});
+
+on("change:power_ranks change:power_abil", function() {
+    getAttrs(["power_ranks", "power_abil", "power_mod", "power_dc_base", "power_dc_mod"], function(values) {
+        let updates = {};
+        let power_ranks = parseInt(values.power_ranks) || 0;
+        let power_abil = parseInt(values.power_abil) || 0;
+        let power_mod = parseInt(values.power_mod) || 0;
+        let power_dc_base = parseInt(values.power_dc_base) || 0;
+        let power_dc_mod = parseInt(values.power_dc_mod) || 0;
+        update_power_bonus(updates, power_ranks, power_abil, power_mod);
+        update_power_dc(updates, power_dc_base, power_abil, power_dc_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:power_mod", function() {
+    getAttrs(["power_ranks", "power_abil", "power_mod"], function(values) {
+        let updates = {};
+        let power_ranks = parseInt(values.power_ranks) || 0;
+        let power_abil = parseInt(values.power_abil) || 0;
+        let power_mod = parseInt(values.power_mod) || 0;
+        update_power_bonus(updates, power_ranks, power_abil, power_mod);
+        setAttrs(updates);
+    });
+});
+
+on("change:power_dc_mod", function() {
+    getAttrs(["power_dc_base", "power_abil", "power_dc_mod"], function(values) {
+        let updates = {};
+        let power_dc_base = parseInt(values.power_dc_base) || 0;
+        let power_abil = parseInt(values.power_abil) || 0;
+        let power_dc_mod = parseInt(values.power_dc_mod) || 0;
+        update_power_dc(updates, power_dc_base, power_abil, power_dc_mod);
+        setAttrs(updates);
+    });
+});
+
+for (const skill_spec of T20_SKILL_SPECS) {
+    const ident = skill_spec[0], ability = skill_spec[1], check_penalty = skill_spec[2];
+    on(`change:skill_${ident}_ranks change:skill_${ident}_equip change:skill_${ident}_misc change:skill_${ident}_temp`, function() {
+        let attrs = [`skill_${ident}_ranks`, ability, `skill_${ident}_equip`, `skill_${ident}_misc`, `skill_${ident}_temp`];
+        if (check_penalty !== null) {
+            attrs.push(check_penalty);
+        }
+        getAttrs(attrs, function(values) {
+            let updates = {};
+            let skill_name = `skill_${ident}`;
+            let skill_ranks = parseInt(values[`skill_${ident}_ranks`]) || 0;
+            let skill_abil = parseInt(values[ability]) || 0;
+            let skill_equip = parseInt(values[`skill_${ident}_equip`]) || 0;
+            let skill_misc = parseInt(values[`skill_${ident}_misc`]) || 0;
+            let skill_temp = parseInt(values[`skill_${ident}_temp`]) || 0;
+            let skill_check_penalty = 0;
+            if (check_penalty !== null) {
+                skill_check_penalty = parseInt(values[check_penalty]) || 0;
+            }
+            update_skill(updates, skill_name, skill_ranks, skill_abil, skill_check_penalty, skill_equip, skill_misc, skill_temp);
+            setAttrs(updates);
+        });
+    });
+}
+
+on("change:armor_bonus", function() {
+    getAttrs(["armor_bonus", "size_tough"], function(values) {
+        let updates = {};
+        let armor_bonus = parseInt(values.armor_bonus) || 0;
+        let size_tough = parseInt(values.size_tough) || 0;
+        update_toughness_base(updates, armor_bonus, size_tough);
+        updates["check_penalty"] = armor_bonus;
+        setAttrs(updates);
+    });
+});
+
+on("change:armor_proficient change:check_penalty", function() {
+    getAttrs(["armor_proficient", "check_penalty"], function(values) {
+        let updates = {};
+        let proficient = parseInt(values.armor_proficient) || 0;
+        let check_penalty = parseInt(values.check_penalty) || 0;
+        update_check_penalties(updates, proficient, check_penalty);
+        setAttrs(updates);
+    });
+    update_all_skills(function(skill_spec) {
+        return skill_spec[2] == "check_penalty";
+    });
+});
+
+on("change:untrained_check_penalty", function() {
+    update_all_skills(function(skill_spec) {
+        return skill_spec[2] == "untrained_check_penalty";
+    });
+});
+
+on("change:swim_check_penalty", function() {
+    update_all_skills(function(skill_spec) {
+        return skill_spec[2] == "swim_check_penalty";
+    });
+});
+
+/*
+on("change:", function() {
+    getAttrs([""], function(values) {
+        let updates = {};
+        let  = parseInt(values.) || 0;
+        update_size(updates, size);
+        setAttrs(updates);
+    });
+});
+*/
+</script>

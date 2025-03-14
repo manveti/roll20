@@ -1,0 +1,144 @@
+.t20-sheet {
+    min-width: 830px;
+    max-width: 850px;
+}
+
+.t20-sheet textarea {
+    height: unset;
+}
+
+.t20-sheet-left, .t20-sheet-right {
+    display: flex;
+    flex-direction: column;
+}
+
+.t20-sheet-left {
+    float: left;
+    margin-right: 2px;
+    min-width: 450px;
+}
+
+.sheet-section {
+    border: 1px solid;
+    margin-bottom: 2px;
+    width: 100%;
+    vertical-align: top;
+}
+
+.section-header {
+    color: white;
+    background-color: black;
+}
+
+.section-description {
+    float: left
+}
+
+.section-nature {
+    float: right
+}
+
+.info-table td {
+    padding: 1px;
+}
+
+.stat-table th {
+    text-align: center;
+    vertical-align: bottom;
+}
+
+.stat-table td {
+    padding: 1px;
+    vertical-align: top;
+}
+
+.damage-table {
+    width: 100%;
+}
+
+.damage-table th, .damage-table td {
+    text-align: center;
+}
+
+.shaded-table tr:nth-child(2n) {
+    background-color: #eee;
+}
+
+.input-num2 {
+    width: 24px;
+}
+.input-num3 {
+    width: 30px;
+}
+.input-num4 {
+    width: 38px;
+}
+
+.input-spin1 {
+    width: 40px;
+}
+.input-spin2 {
+    width: 45px;
+}
+.input-spin3 {
+    width: 50px;
+}
+
+.input-dropdown-small {
+    width: 60px;
+}
+.input-dropdown-medium {
+    width: 75px;
+}
+.input-dropdown-large {
+    width: 102px;
+}
+
+
+.sheet-rolltemplate-True20Generic table,
+.sheet-rolltemplate-True20Attack table {
+    width: 100%;
+    background-color: white;
+    border: 1px solid;
+}
+
+.sheet-rolltemplate-True20Generic th,
+.sheet-rolltemplate-True20Attack th {
+    background-color: #4c8433;
+    color: white;
+    font-family: "Helvetica-Neue", Helvetica, sans-serif;
+    font-weight: 300;
+    font-size: 1.1em;
+    padding: 5px;
+}
+
+.sheet-rolltemplate-True20Attack .sheet-header-attack {
+    background-color: #880015;
+}
+
+.sheet-rolltemplate-True20Generic .sheet-subheader,
+.sheet-rolltemplate-True20Generic .sheet-footer,
+.sheet-rolltemplate-True20Attack sheet-subheader,
+.sheet-rolltemplate-True20Attack .sheet-footer {
+    font-style: italic;
+}
+
+.sheet-rolltemplate-True20Generic tr:nth-child(2n),
+.sheet-rolltemplate-True20Attack tr:nth-child(2n) {
+    background-color: #eee;
+}
+
+.sheet-rolltemplate-True20Generic td,
+.sheet-rolltemplate-True20Attack td {
+    padding: 5px;
+    line-height: 1.4em;
+    vertical-align: top;
+}
+
+.sheet-rolltemplate-True20Generic .sheet-row-label,
+.sheet-rolltemplate-True20Attack .sheet-row-label {
+    font-weight: bold;
+    text-align: right;
+    min-width: 50px;
+    padding-right: 10px;
+}
