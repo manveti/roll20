@@ -1459,6 +1459,35 @@ maybe add power bonus, power check button, and power dc for innate powers; also 
     </table>
 </rolltemplate>
 
+<rolltemplate class="sheet-rolltemplate-True20Damage">
+    <table>
+        <tr>
+            <th>Bruised</th>
+            <th>Dazed</th>
+            <th>Staggered</th>
+            <th>Unconscious</th>
+        </tr>
+        <tr>
+            <td align="center">{{bruised}}{{^bruised}}&nbsp;{{/bruised}}</td>
+            <td align="center">{{dazed}}{{^dazed}}&nbsp;{{/dazed}}</td>
+            <td align="center">{{#staggered}}☑{{/staggered}}{{^staggered}}☐{{/staggered}}</td>
+            <td align="center">{{#unconscious}}☑{{/unconscious}}{{^unconscious}}☐{{/unconscious}}</td>
+        </tr>
+        <tr>
+            <td align="center">{{hurt}}{{^hurt}}&nbsp;{{/hurt}}</td>
+            <td align="center">{{wounded}}{{^wounded}}&nbsp;{{/wounded}}</td>
+            <td align="center">{{#disabled}}☑{{/disabled}}{{^disabled}}☐{{/disabled}}</td>
+            <td align="center">{{#dying}}☑{{/dying}}{{^dying}}☐{{/dying}}</td>
+        </tr>
+        <tr>
+            <th>Hurt</th>
+            <th>Wounded</th>
+            <th>Disabled</th>
+            <th>Dying</th>
+        </tr>
+    </table>
+</rolltemplate>
+
 
 <script type="text/worker">
 function update_size(updates, size) {
