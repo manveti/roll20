@@ -268,7 +268,8 @@ var T20Npc = T20Npc || {
         if ((n || 0) <= 0) {
             n = 1;
         }
-        let pref = `repeating_weapons_${n}_`;
+        n -= 1;  // adjust for 0-based index
+        let pref = `repeating_weapons_\$${n}_`;
         let msg = `&{template:True20Attack} {{name=${name}}} {{subtags=attacks with a @{${charName}|${pref}weap_name} }}`;
         msg += ` {{attack1=[[1d20cs>@{${charName}|${pref}weap_crit} + @{${charName}|${pref}weap_type}[attack] + @{${charName}|${pref}weap_hit_mod}[weapon]`;
         let crit = `{{critconfirm1=[[1d20cs>@{${charName}|${pref}weap_crit} + @{${charName}|${pref}weap_type}[attack] + @{${charName}|${pref}weap_hit_mod}[weapon]`;
