@@ -1405,6 +1405,15 @@ maybe add power bonus, power check button, and power dc for innate powers; also 
             </tr>
         </table>
     </div>
+
+    <input type="hidden" name="attr_hp_bar" value="20">
+    <input type="hidden" name="attr_hp_bar_max" value="20">
+    <input type="hidden" name="attr_nl_hp_bar" value="20">
+    <input type="hidden" name="attr_nl_hp_bar_max" value="20">
+    <input type="hidden" name="attr_sanity_bar" value="20">
+    <input type="hidden" name="attr_sanity_bar_max" value="20">
+    <input type="hidden" name="attr_fear_bar" value="20">
+    <input type="hidden" name="attr_fear_bar_max" value="20">
 </div>
 
 
@@ -1710,6 +1719,26 @@ function update_all_skills(predicate) {
 function update_check_penalties(updates, proficient, check_penalty) {
     updates["untrained_check_penalty"] = (proficient == 0 ? check_penalty : 0);
     updates["swim_check_penalty"] = check_penalty * 2;
+}
+
+function update_bar(updates, bar_attr, minor, major, full, overkill) {
+    // set "HP" bar based on damage track; minor=>hurt, major=>wounded, full=>disabled, overkill=>dying (or similar for other damage tracks)
+    if (overkill > 0) {
+        // overkill true (e.g. unconscious/dying): hard-coded -5/20
+        updates[bar_attr] = -5;
+        updates[bar_attr + "_max"] = 20;
+    }
+    else if (full > 0) {
+        // full true (e.g. disabled): hard-coded 0/20
+        updates[bar_attr] = 0;
+        updates[bar_attr + "_max"] = 20;
+    }
+    else {
+        // dynamic bar: start with 20/20, each minor increases denominator by 5%, each major by 25% (multiplicatively)
+        // in other words, each minor removes ~4.76% (1/21) of remaining "hp", each major removes 20%
+        updates[bar_attr] = 20;
+        updates[bar_attr + "_max"] = Math.floor(20 * Math.pow(1.05, minor) * Math.pow(1.25, major));
+    }
 }
 
 on("change:size", function() {
@@ -2046,22 +2075,38 @@ on("change:sanity_base change:sanity_abil change:sanity_misc change:sanity_temp"
     });
 });
 
+on("change:bruised change:dazed change:staggered change:unconscious", function() {
+    getAttrs(["bruised", "dazed", "staggered", "unconscious"], function(values) {
+        let updates = {};
+        let bruised = parseInt(values.bruised) || 0;
+        let dazed = parseInt(values.dazed) || 0;
+        let staggered = parseInt(values.staggered) || 0;
+        let unconscious = parseInt(values.unconscious) || 0;
+        update_bar(updates, "nl_hp_bar", bruised, dazed, staggered, unconscious);
+        setAttrs(updates);
+    });
+});
+
 on("change:hurt", function() {
-    getAttrs(["hurt", "prev_hurt", "bruised"], function(values) {
+    getAttrs(["hurt", "prev_hurt", "bruised", "wounded", "disabled", "dying"], function(values) {
         let updates = {};
         let hurt = parseInt(values.hurt) || 0;
         let prev_hurt = parseInt(values.prev_hurt) || 0;
         let bruised = parseInt(values.bruised) || 0;
+        let wounded = parseInt(values.wounded) || 0;
+        let disabled = parseInt(values.disabled) || 0;
+        let dying = parseInt(values.dying) || 0;
         if (hurt > prev_hurt) {
             updates["bruised"] = bruised + (hurt - prev_hurt);
         }
         updates["prev_hurt"] = hurt;
+        update_bar(updates, "hp_bar", hurt, wounded, disabled, dying);
         setAttrs(updates);
     });
 });
 
 on("change:wounded", function() {
-    getAttrs(["wounded", "prev_wounded", "dazed", "confused", "disabled", "dying"], function(values) {
+    getAttrs(["wounded", "prev_wounded", "dazed", "confused", "disabled", "dying", "hurt"], function(values) {
         let updates = {};
         let wounded = parseInt(values.wounded) || 0;
         let prev_wounded = parseInt(values.prev_wounded) || 0;
@@ -2069,103 +2114,135 @@ on("change:wounded", function() {
         let confused = parseInt(values.confused) || 0;
         let disabled = parseInt(values.disabled) || 0;
         let dying = parseInt(values.dying) || 0;
+        let hurt = parseInt(values.hurt) || 0;
         if (wounded > prev_wounded) {
             updates["dazed"] = dazed + (wounded - prev_wounded);
         }
         updates["prev_wounded"] = wounded;
         update_shaken_penalty(updates, wounded, confused);
         update_damage_penalty(updates, wounded, disabled, dying);
+        update_bar(updates, "hp_bar", hurt, wounded, disabled, dying);
         setAttrs(updates);
     });
 });
 
 on("change:disabled", function() {
-    getAttrs(["disabled", "prev_disabled", "wounded", "dying"], function(values) {
+    getAttrs(["disabled", "prev_disabled", "wounded", "dying", "hurt"], function(values) {
         let updates = {};
         let disabled = parseInt(values.disabled) || 0;
         let prev_disabled = parseInt(values.prev_disabled) || 0;
         let wounded = parseInt(values.wounded) || 0;
         let dying = parseInt(values.dying) || 0;
+        let hurt = parseInt(values.hurt) || 0;
         if (disabled > prev_disabled) {
             updates["staggered"] = disabled;
         }
         updates["prev_disabled"] = disabled;
         update_damage_penalty(updates, wounded, disabled, dying);
+        update_bar(updates, "hp_bar", hurt, wounded, disabled, dying);
         setAttrs(updates);
     });
 });
 
 on("change:dying", function() {
-    getAttrs(["dying", "prev_dying", "wounded", "disabled"], function(values) {
+    getAttrs(["dying", "prev_dying", "wounded", "disabled", "hurt"], function(values) {
         let updates = {};
         let dying = parseInt(values.dying) || 0;
         let prev_dying = parseInt(values.prev_dying) || 0;
         let wounded = parseInt(values.wounded) || 0;
         let disabled = parseInt(values.disabled) || 0;
+        let hurt = parseInt(values.hurt) || 0;
         if (dying > prev_dying) {
             updates["unconscious"] = dying;
         }
         updates["prev_dying"] = dying;
         update_damage_penalty(updates, wounded, disabled, dying);
+        update_bar(updates, "hp_bar", hurt, wounded, disabled, dying);
+        setAttrs(updates);
+    });
+});
+
+on("change:startled change:spooked change:frightened change:terrified", function() {
+    getAttrs(["startled", "spooked", "frightened", "terrified"], function(values) {
+        let updates = {};
+        let startled = parseInt(values.startled) || 0;
+        let spooked = parseInt(values.spooked) || 0;
+        let frightened = parseInt(values.frightened) || 0;
+        let terrified = parseInt(values.terrified) || 0;
+        update_bar(updates, "fear_bar", startled, spooked, frightened, terrified);
         setAttrs(updates);
     });
 });
 
 on("change:scared", function() {
-    getAttrs(["scared", "prev_scared", "startled"], function(values) {
+    getAttrs(["scared", "prev_scared", "startled", "confused", "unhinged", "psychotic"], function(values) {
         let updates = {};
         let scared = parseInt(values.scared) || 0;
         let prev_scared = parseInt(values.prev_scared) || 0;
         let startled = parseInt(values.startled) || 0;
+        let confused = parseInt(values.confused) || 0;
+        let unhinged = parseInt(values.unhinged) || 0;
+        let psychotic = parseInt(values.psychotic) || 0;
         if (scared > prev_scared) {
             updates["startled"] = startled + (scared - prev_scared);
         }
         updates["prev_scared"] = scared;
+        update_bar(updates, "sanity_bar", scared, confused, unhinged, psychotic);
         setAttrs(updates);
     });
 });
 
 on("change:confused", function() {
-    getAttrs(["confused", "prev_confused", "wounded"], function(values) {
+    getAttrs(["confused", "prev_confused", "wounded", "scared", "unhinged", "psychotic"], function(values) {
         let updates = {};
         let confused = parseInt(values.confused) || 0;
         let prev_confused = parseInt(values.prev_confused) || 0;
         let wounded = parseInt(values.wounded) || 0;
+        let scared = parseInt(values.scared) || 0;
+        let unhinged = parseInt(values.unhinged) || 0;
+        let psychotic = parseInt(values.psychotic) || 0;
         if (confused > prev_confused) {
             updates["spooked"] = confused;
         }
         updates["prev_confused"] = confused;
         update_shaken_penalty(updates, wounded, confused);
+        update_bar(updates, "sanity_bar", scared, confused, unhinged, psychotic);
         setAttrs(updates);
     });
 });
 
 on("change:unhinged", function() {
-    getAttrs(["unhinged", "prev_unhinged", "psychotic"], function(values) {
+    getAttrs(["unhinged", "prev_unhinged", "psychotic", "scared", "confused"], function(values) {
         let updates = {};
         let unhinged = parseInt(values.unhinged) || 0;
         let prev_unhinged = parseInt(values.prev_unhinged) || 0;
         let psychotic = parseInt(values.psychotic) || 0;
+        let scared = parseInt(values.scared) || 0;
+        let confused = parseInt(values.confused) || 0;
         if (unhinged > prev_unhinged) {
             updates["frightened"] = unhinged;
         }
         updates["prev_unhinged"] = unhinged;
         update_fear_penalty(updates, unhinged, psychotic);
+        update_bar(updates, "sanity_bar", scared, confused, unhinged, psychotic);
         setAttrs(updates);
     });
 });
 
 on("change:psychotic", function() {
-    getAttrs(["psychotic", "prev_psychotic", "unhinged"], function(values) {
+    getAttrs(["psychotic", "prev_psychotic", "unhinged", "scared", "confused"], function(values) {
         let updates = {};
         let psychotic = parseInt(values.psychotic) || 0;
         let prev_psychotic = parseInt(values.prev_psychotic) || 0;
         let unhinged = parseInt(values.unhinged) || 0;
+        let scared = parseInt(values.scared) || 0;
+        let confused = parseInt(values.confused) || 0;
         if (psychotic > prev_psychotic) {
             updates["terrified"] = psychotic;
         }
         updates["prev_psychotic"] = psychotic;
         update_fear_penalty(updates, unhinged, psychotic);
+        update_bar(updates, "sanity_bar", scared, confused, unhinged, psychotic);
         setAttrs(updates);
     });
 });
